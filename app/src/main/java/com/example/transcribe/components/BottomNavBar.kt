@@ -51,12 +51,11 @@ fun BottomNavBar(navController: NavController) {
                 },
                 onClick = {
                     navController.navigate(item.route) {
-                        //Pop up to the start destination (to avoid building up a large stack)
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = false
                         }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false
                     }
                 }
             )

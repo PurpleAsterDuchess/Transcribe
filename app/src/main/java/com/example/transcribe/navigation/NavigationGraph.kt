@@ -10,27 +10,54 @@ import com.example.transcribe.screens.HomeScreen
 import com.example.transcribe.screens.UploadScreen
 import com.example.transcribe.screens.FavoritesScreen
 import com.example.transcribe.R
+import com.example.transcribe.screens.PlayScreen
 
 @Composable
-fun NavigationGraph(navController: NavHostController,
-                    modifier: Modifier){
+fun NavigationGraph(
+    navController: NavHostController,
+    modifier: Modifier
+) {
     val context = LocalContext.current.applicationContext
-    NavHost(navController,
-        startDestination = NavScreen.Home.route) {
+
+    NavHost(
+        navController = navController,
+        startDestination = NavScreen.Home.route
+    ) {
+
         composable(NavScreen.Home.route) {
-            HomeScreen(text = stringResource(R.string.home_button),
+            HomeScreen(
+                navController = navController,
+                text = stringResource(R.string.home_button),
                 context = context,
-                modifier)
+                modifier = modifier
+            )
         }
+
         composable(NavScreen.Upload.route) {
-            UploadScreen(text = stringResource(R.string.upload_button),
+            UploadScreen(
+                navController = navController,
+                text = stringResource(R.string.upload_button),
                 context = context,
-                modifier)
+                modifier = modifier
+            )
         }
-        composable(NavScreen.Upload.route) {
-            FavoritesScreen(text = stringResource(R.string.favorites_button),
+
+        composable(NavScreen.Favorites.route) {
+            FavoritesScreen(
+                navController = navController,
+                text = stringResource(R.string.favorites_button),
                 context = context,
-                modifier)
+                modifier = modifier
+            )
+        }
+
+        composable(NavScreen.Play.route) {
+            PlayScreen(
+                navController = navController,
+                text = stringResource(R.string.play_button),
+                context = context,
+                modifier = modifier
+            )
         }
     }
 }

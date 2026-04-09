@@ -13,10 +13,10 @@ import androidx.navigation.NavController
 
 
 @Composable
-fun FavoritesScreen(navController: NavController,
-                    text: String,
-                    context: Context,
-                    modifier: Modifier = Modifier
+fun PlayScreen(navController: NavController,
+               text: String,
+               context: Context,
+               modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier

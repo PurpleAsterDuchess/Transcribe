@@ -4,7 +4,8 @@ import com.example.transcribe.AppDestinations
 
 sealed class NavScreen(var icon: AppDestinations,
     var route:String){
-    data object Home: NavScreen(AppDestinations.HOME, "Home")
-    data object Upload: NavScreen(AppDestinations.UPLOAD, "Upload")
-    data object Favorites: NavScreen(AppDestinations.FAVORITES, "Favorites")
+    data object Home: NavScreen(AppDestinations.HOME, "home")
+    data object Upload: NavScreen(AppDestinations.UPLOAD, "upload")
+    data object Favorites: NavScreen(AppDestinations.FAVORITES, "favorites")
+    data object Play: NavScreen(AppDestinations.PLAY, "play")
 }
