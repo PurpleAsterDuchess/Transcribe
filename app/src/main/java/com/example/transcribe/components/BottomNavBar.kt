@@ -6,14 +6,12 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.transcribe.navigation.NavScreen
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavGraph.Companion.findStartDestination
 
 @Composable
 private fun createListOfItems(enabled: Boolean): List<NavScreen> {

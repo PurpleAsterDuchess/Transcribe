@@ -4,4 +4,12 @@
     <string name="upload_button">Upload</string>
     <string name="favorites_button">Favorites</string>
     <string name="play_button">Play</string>
+
+    <string name="menu_name">Recents</string>
+    <string name="add_menu">Add</string>
+    <string name="globe_menu">Globe</string>
+    <string name="home_menu">Home</string>
+    <string name="ideas_menu">Ideas</string>
+    <string name="logout_menu">Logout</string>
+    <string name="rocket_menu">Rocket</string>
 </resources>
