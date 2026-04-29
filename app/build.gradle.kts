@@ -1,6 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+//    id("com.google.dagger.hilt.android")
+//    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -32,14 +38,31 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
     buildFeatures {
         compose = true
     }
 }
 
-val nav_version = "2.9.7"
-
 dependencies {
+    implementation("androidx.navigation:navigation-compose:2.9.7")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+    implementation(libs.androidx.material3)
+
+//    val hiltVersion = "2.57.2"
+//    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+//    implementation("com.google.dagger:hilt-android:$hiltVersion")
+//    ksp("com.google.dagger:hilt-compiler:$hiltVersion")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+//    testImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
+//    kspTest("com.google.dagger:hilt-compiler:$hiltVersion")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -53,6 +76,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.compose.ui)
+    implementation("androidx.compose.material:material-icons-extended")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
