@@ -49,7 +49,8 @@ fun HomeScreen(modifier: Modifier = Modifier,
             CustomButton(
                 text = "Play this song",
                 onClick = {
-                    navController.navigate(NavScreen.Play.route)
+                    val selectedId = vm.items[selectedIndex].id
+                    navController.navigate("${NavScreen.Play.route}/$selectedId")
                 },
                 enabled = selectedIndex != NOTHING_SELECTED && vm.items.isNotEmpty()
             )

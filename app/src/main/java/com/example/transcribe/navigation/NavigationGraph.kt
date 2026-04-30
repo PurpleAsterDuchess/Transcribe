@@ -12,7 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.transcribe.screens.FavoritesScreen
 import com.example.transcribe.R
-import com.example.transcribe.screens.PlayScreen
+import com.example.transcribe.screens.play.PlayScreen
 import com.example.transcribe.screens.home.HomeScreen
 import com.example.transcribe.screens.upload.UploadScreen
 
@@ -65,10 +65,12 @@ fun NavigationGraph(
             )
         }
 
-        composable(NavScreen.Play.route) {
+        composable(
+            route = "${NavScreen.Play.route}/{songId}"
+        ) {backStackEntry ->    val songId = backStackEntry.arguments?.getString("songId")
             PlayScreen(
                 navController = navController,
-                text = stringResource(R.string.play_button),
+                songId= songId,
                 context = context,
                 modifier = modifier
             )

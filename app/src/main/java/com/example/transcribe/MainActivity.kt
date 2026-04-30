@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.transcribe.screens.MainScreen
+import com.example.transcribe.screens.main.MainScreen
 import com.example.transcribe.ui.theme.TranscribeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,7 +23,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             TranscribeTheme {
                 MainScreen(modifier = Modifier.fillMaxSize()
-                    .background(Color.LightGray))
+                    .background(Color.LightGray)
+                )
             }
         }
     }
