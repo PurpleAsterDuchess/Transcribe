@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.unit.dp
 
 
@@ -52,40 +51,40 @@ fun PlayScreen(
             color = Color.Gray,
             modifier = Modifier.padding(bottom = 32.dp)
         )
-
-        if (vm.isPlayingSong) {
-            androidx.compose.material3.Button(
-                onClick = { vm.stopAudio() },
-                modifier = Modifier.fillMaxWidth(0.7f),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color.Red
-                )
-            ) {
-                androidx.compose.foundation.layout.Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    androidx.compose.material3.Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Stop,
-                        contentDescription = "Stop Icon"
-                    )
-                }
-            }
-        } else {
-            androidx.compose.material3.Button(
-                onClick = { vm.playAudio(context, transcription?.fileUri) },
-                modifier = Modifier.fillMaxWidth(0.7f)
-            ) {
-                androidx.compose.foundation.layout.Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    androidx.compose.material3.Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.PlayArrow,
-                        contentDescription = "Play Icon"
-                    )
-                    androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp))
-                }
-            }
-        }
+//        This currently plays the uploaded song - TO DO: update to play the midi version
+//        if (vm.isPlayingSong) {
+//            androidx.compose.material3.Button(
+//                onClick = { vm.stopAudio() },
+//                modifier = Modifier.fillMaxWidth(0.7f),
+//                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+//                    containerColor = Color.Red
+//                )
+//            ) {
+//                androidx.compose.foundation.layout.Row(
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    androidx.compose.material3.Icon(
+//                        imageVector = androidx.compose.material.icons.Icons.Default.Stop,
+//                        contentDescription = "Midi stop"
+//                    )
+//                }
+//            }
+//        } else {
+//            androidx.compose.material3.Button(
+//                onClick = { vm.playAudio(context, transcription?.fileUri) },
+//                modifier = Modifier.fillMaxWidth(0.7f)
+//            ) {
+//                androidx.compose.foundation.layout.Row(
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    androidx.compose.material3.Icon(
+//                        imageVector = androidx.compose.material.icons.Icons.Default.PlayArrow,
+//                        contentDescription = "Midi play"
+//                    )
+//                    androidx.compose.foundation.layout.Spacer(Modifier.padding(4.dp))
+//                }
+//            }
+//        }
 
     }
 }

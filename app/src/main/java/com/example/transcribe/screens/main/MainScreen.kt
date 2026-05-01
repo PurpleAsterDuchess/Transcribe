@@ -3,6 +3,8 @@ package com.example.transcribe.screens.main
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -15,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.example.transcribe.R
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,14 +31,18 @@ import com.example.transcribe.components.TopBar
 import kotlinx.coroutines.launch
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.data.TranscriptionRepository
+import com.example.transcribe.screens.play.PlayViewModel
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 
 
 @Composable
 fun MainScreen(modifier: Modifier = Modifier,
                navController: NavHostController = rememberNavController(),
-               vm: MainViewModel = hiltViewModel()
+               vm: MainViewModel = hiltViewModel(),
+               playVm: PlayViewModel = hiltViewModel()
 ){
-
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentlySelectedMenuItem = navBackStackEntry?.destination?.route
@@ -44,12 +51,16 @@ fun MainScreen(modifier: Modifier = Modifier,
 
     var topBarTitle by remember { mutableStateOf("") }
     val defaultTitle = stringResource(R.string.app_name)
+
+    val songId = navBackStackEntry?.arguments?.getString("songId")
+    val currentTranscription = remember(songId) {
+        if (songId != null) playVm.getTranscriptionById(songId) else null
+    }
+
     LaunchedEffect(currentRoute, navBackStackEntry) {
         if (currentRoute?.contains("play") == true) {
-            val songId = navBackStackEntry?.arguments?.getString("songId")
-            if (songId != null) {
-                val song = vm.repo.findAll().find { it.id.toString() == songId }
-                topBarTitle = "${song?.title}, ${song?.author}"
+            if (currentTranscription != null) {
+                topBarTitle = "${currentTranscription.title}, ${currentTranscription.author}"
             } else {
                 topBarTitle = "Unknown"
             }
@@ -96,6 +107,22 @@ fun MainScreen(modifier: Modifier = Modifier,
                     onMenuIconClick = {
                         coroutineScope.launch {
                             drawerState.open()
+                        }
+                    },
+                    actions = {
+                        if (currentRoute?.contains("play") == true && currentTranscription != null) {
+                            IconButton(onClick = {
+                                if (playVm.isPlayingSong) {
+                                    playVm.stopAudio()
+                                } else {
+                                    playVm.playAudio(context, currentTranscription.fileUri)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = if (playVm.isPlayingSong) androidx.compose.material.icons.Icons.Default.Stop else androidx.compose.material.icons.Icons.Default.PlayArrow,
+                                    contentDescription = if (playVm.isPlayingSong) "Stop" else "Play"
+                                )
+                            }
                         }
                     }
                 )

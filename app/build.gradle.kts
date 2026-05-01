@@ -57,6 +57,7 @@ dependencies {
 //    implementation("com.google.dagger:hilt-android:$hiltVersion")
 //    ksp("com.google.dagger:hilt-compiler:$hiltVersion")
     implementation(libs.hilt.android)
+    implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 

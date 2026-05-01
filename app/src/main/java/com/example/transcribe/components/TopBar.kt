@@ -1,5 +1,6 @@
 package com.example.transcribe.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,7 +13,9 @@ import androidx.compose.runtime.Composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(text: String,
-           onMenuIconClick: () -> Unit) {
+           onMenuIconClick: () -> Unit,
+           actions: @Composable RowScope.() -> Unit = {}
+) {
     TopAppBar(
         title = {
             Text(text = text)
@@ -26,6 +29,7 @@ fun TopBar(text: String,
                     contentDescription = "navigation"
                 )
             }
-        }
+        },
+        actions = actions
     )
 }
