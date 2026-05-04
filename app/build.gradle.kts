@@ -52,17 +52,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation(libs.androidx.material3)
 
-//    val hiltVersion = "2.57.2"
-//    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-//    implementation("com.google.dagger:hilt-android:$hiltVersion")
+    val hiltVersion = "2.57.2"
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("com.google.dagger:hilt-android:$hiltVersion")
 //    ksp("com.google.dagger:hilt-compiler:$hiltVersion")
-    implementation(libs.hilt.android)
     implementation(libs.androidx.compose.foundation.layout)
     ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
 
-//    testImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
-//    kspTest("com.google.dagger:hilt-compiler:$hiltVersion")
+    testImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
+    kspTest("com.google.dagger:hilt-compiler:$hiltVersion")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
