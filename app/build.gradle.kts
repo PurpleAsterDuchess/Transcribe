@@ -47,6 +47,9 @@ android {
 }
 
 dependencies {
+    implementation("androidx.room:room-ktx:2.8.4")
+    ksp("androidx.room:room-compiler:2.8.4")
+
     implementation("androidx.navigation:navigation-compose:2.9.7")
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")

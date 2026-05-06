@@ -11,11 +11,13 @@ import androidx.lifecycle.ViewModel
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.data.TranscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayViewModel @Inject constructor(
-    private val repo: TranscriptionRepository<Transcription>
+    private val repo: TranscriptionRepository
 ) : ViewModel() {
 
     private var mediaPlayer: MediaPlayer? = null
@@ -23,8 +25,9 @@ class PlayViewModel @Inject constructor(
     var isPlayingSong by mutableStateOf(false)
         private set
 
-    fun getTranscriptionById(songId: String?): Transcription? {
-        return repo.findAll().find { it.id.toString() == songId }
+    fun getTranscriptionById(songId: String?): Flow<Transcription?> {
+        val id = songId?.toIntOrNull() ?: return emptyFlow()
+        return repo.findById(id)
     }
 
     fun playAudio(context: Context, fileUriString: String?) {

@@ -7,14 +7,16 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.example.transcribe.screens.TranscriptionUIState
-import java.util.UUID
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.data.TranscriptionRepository
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class UploadViewModel @Inject constructor(
-    private val repo: TranscriptionRepository<Transcription>
+    private val repo: TranscriptionRepository
 ): ViewModel() {
     var uiState by mutableStateOf(TranscriptionUIState())
         private set
@@ -34,20 +36,24 @@ class UploadViewModel @Inject constructor(
         )
     }
 
-    fun upload(){
-        if(uiState.isValid()) {
+    fun upload() {
+        if (uiState.isValid()) {
             val newTranscription = Transcription(
-                id=UUID.randomUUID(),
-                title=uiState.title,
-                author=uiState.author,
-                fileUri=uiState.selectedFileUri?.toString(),
+                title = uiState.title,
+                author = uiState.author,
+                fileUri = uiState.selectedFileUri?.toString(),
             )
-            repo.insert(newTranscription)
-
-            Log.v("OK", "added, repo size is now ${repo.findAll().size}")
-            clear()
+            viewModelScope.launch(errorHandler) {
+                repo.insert(newTranscription)
+                clear()
+            }
         }
     }
+
+    val errorHandler = CoroutineExceptionHandler { _, exception ->
+        Log.e("UploadViewModel", "Upload error: ${exception.message}")
+    }
+
     private fun clear(){
         uiState = TranscriptionUIState()
     }

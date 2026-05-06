@@ -34,6 +34,7 @@ import com.example.transcribe.data.TranscriptionRepository
 import com.example.transcribe.screens.play.PlayViewModel
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 
 @Composable
@@ -53,14 +54,19 @@ fun MainScreen(modifier: Modifier = Modifier,
     val defaultTitle = stringResource(R.string.app_name)
 
     val songId = navBackStackEntry?.arguments?.getString("songId")
-    val currentTranscription = remember(songId) {
-        if (songId != null) playVm.getTranscriptionById(songId) else null
-    }
+    val currentTranscription by remember(songId) {
+        val id = songId?.toIntOrNull()
+        if (id != null) {
+            playVm.getTranscriptionById(id.toString())
+        } else {
+            kotlinx.coroutines.flow.flowOf(null)
+        }
+    }.collectAsStateWithLifecycle(initialValue = null)
 
-    LaunchedEffect(currentRoute, navBackStackEntry) {
+    LaunchedEffect(currentRoute, currentTranscription) {
         if (currentRoute?.contains("play") == true) {
             if (currentTranscription != null) {
-                topBarTitle = "${currentTranscription.title}, ${currentTranscription.author}"
+                topBarTitle = "${currentTranscription?.title}, ${currentTranscription?.author}"
             } else {
                 topBarTitle = "Unknown"
             }
@@ -115,7 +121,7 @@ fun MainScreen(modifier: Modifier = Modifier,
                                 if (playVm.isPlayingSong) {
                                     playVm.stopAudio()
                                 } else {
-                                    playVm.playAudio(context, currentTranscription.fileUri)
+                                    playVm.playAudio(context, currentTranscription?.fileUri)
                                 }
                             }) {
                                 Icon(

@@ -1,10 +1,11 @@
 package com.example.transcribe.data
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import java.util.UUID
 import javax.inject.Singleton
 
 @Module
@@ -12,14 +13,18 @@ import javax.inject.Singleton
 object RepositoryModule {
     @Provides
     @Singleton
-    fun provideTranscriptionRepository(): TranscriptionRepository<Transcription> {
-        val repository = InMemoryRepository()
+    fun provideTranscriptionDB(@ApplicationContext context: Context): TranscriptionDB {
+        return TranscriptionDB.getDatabase(context)
+    }
 
-        // Add your sample records here during the initial creation
-        repository.insert(Transcription(UUID.randomUUID(), "Title1", "Author1", "fileUri1"))
-        repository.insert(Transcription(UUID.randomUUID(), "Title2", "Author2", "fileUri2"))
-        repository.insert(Transcription(UUID.randomUUID(), "Title3", "Author3", "fileUri3"))
+    @Provides
+    fun provideTranscriptionDao(database: TranscriptionDB): TranscriptionDAO {
+        return database.transcriptionDAO()
+    }
 
-        return repository
+    @Provides
+    @Singleton
+    fun provideLocalRepo(transcriptionDAO: TranscriptionDAO): TranscriptionRepository {
+        return LocalTranscriptionRepository(transcriptionDAO)
     }
 }

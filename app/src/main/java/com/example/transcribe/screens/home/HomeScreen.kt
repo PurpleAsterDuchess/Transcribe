@@ -12,6 +12,8 @@ import com.example.transcribe.R
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -33,6 +35,7 @@ fun HomeScreen(modifier: Modifier = Modifier,
                text: String,
                context: Context,
 ) {
+    val items by vm.items.collectAsState()
     val NOTHING_SELECTED = -1
 
     Scaffold(modifier = modifier) { innerPadding ->
@@ -49,21 +52,23 @@ fun HomeScreen(modifier: Modifier = Modifier,
             CustomButton(
                 text = "Play this song",
                 onClick = {
-                    val selectedId = vm.items[selectedIndex].id
-                    navController.navigate("${NavScreen.Play.route}/$selectedId")
+                    if (selectedIndex != NOTHING_SELECTED && selectedIndex < items.size) {
+                        val selectedId = items[selectedIndex].id
+                        navController.navigate("${NavScreen.Play.route}/$selectedId")
+                    }
                 },
-                enabled = selectedIndex != NOTHING_SELECTED && vm.items.isNotEmpty()
+                enabled = selectedIndex != NOTHING_SELECTED && items.isNotEmpty()
             )
 
             LazyColumn (modifier = Modifier.weight(1f)) {
-                itemsIndexed(vm.items) { index, item ->
+                itemsIndexed(items) { index, item ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ItemView(
                             index = index,
-                            item.toString(),
+                            item = item.toString(),
                             selected = selectedIndex == index,
                             onClick = onIndexChange
                         )

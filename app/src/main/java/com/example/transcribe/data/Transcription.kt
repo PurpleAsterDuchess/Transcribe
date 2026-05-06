@@ -1,11 +1,17 @@
 package com.example.transcribe.data
-import java.util.UUID
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity(tableName = "Transcriptions")
 data class Transcription(
-    var id: UUID?,
-    var title: String,
-    var author: String,
-    val fileUri: String? = null
+    @ColumnInfo(name = "title") var title: String,
+    @ColumnInfo(name = "author") var author: String,
+    @ColumnInfo(name = "fileUri") var fileUri: String? = null
+
 ) {
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id") var id: Int? = null
+
     override fun toString(): String = "$title, $author"
 }

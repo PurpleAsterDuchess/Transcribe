@@ -1,26 +1,40 @@
 package com.example.transcribe.screens.home
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.transcribe.data.LocalTranscriptionRepository
 import com.example.transcribe.data.Transcription
-import com.example.transcribe.data.TranscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val repo: TranscriptionRepository<Transcription>
+    private val repo: LocalTranscriptionRepository
 ) : ViewModel() {
-    val items = mutableStateListOf<Transcription>()
+    val items: StateFlow<List<Transcription>> = repo.findAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    init{
-        items.addAll(repo.findAll())
+    var selectedTranscription: Transcription?= null
+
+    fun deleteTranscription(){
+        val transcriptionToDelete = selectedTranscription ?: return
+        viewModelScope.launch(errorHandler) {
+            repo.delete(transcriptionToDelete)
+            selectedTranscription = null
+        }
     }
 
-    fun deleteTranscription(index: Int){
-        val selectedTranscription = repo.findById(index)
-        repo.delete(selectedTranscription)
-        items.remove(selectedTranscription)
-        Log.v("OK", "deleted, repo size is now ${repo.findAll().size}")
+    val errorHandler = CoroutineExceptionHandler { _, exception ->
+        Log.e("HomeViewModel", "Delete error: ${exception.message}")
     }
 }

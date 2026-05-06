@@ -22,7 +22,7 @@ fun NavigationGraph(
     modifier: Modifier
 ) {
     val context = LocalContext.current.applicationContext
-    var selectedContactIndex by remember{ mutableIntStateOf(-1) }
+    var selectedTranscriptionIndex by remember{ mutableIntStateOf(-1) }
 
     NavHost(
         navController = navController,
@@ -31,9 +31,9 @@ fun NavigationGraph(
 
         composable(NavScreen.Home.route) {
             HomeScreen(
-                selectedIndex = selectedContactIndex,
+                selectedIndex = selectedTranscriptionIndex,
                 onIndexChange = {
-                    selectedContactIndex = it
+                    selectedTranscriptionIndex = it
                 },
                 navController = navController,
                 text = stringResource(R.string.home_button),
