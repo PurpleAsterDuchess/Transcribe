@@ -12,5 +12,16 @@
     <string name="author_error_msg">Author cannot be blank</string>
     <string name="title">Title</string>
     <string name="author">Author</string>
+    <string name="email">Email</string>
+    <string name="email_error_message">Please insert a valid
+email.</string>
+    <string name="password">Password</string>
+    <string name="password_error_message">Please insert a valid
+password</string>
+    <string name="verify_email">Verify email</string>
+    <string name="forgot_password">Forgot password</string>
+    <string name="sign_up_button">Sign Up</string>
+    <string name="back_button">Back</string>
+    <string name="submit_button">Submit</string>
 
 </resources>

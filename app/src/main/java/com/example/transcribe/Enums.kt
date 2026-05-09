@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.ui.graphics.vector.ImageVector
 
 enum class AppDestinations(
@@ -14,5 +16,8 @@ enum class AppDestinations(
     HOME("Home", Icons.Default.Home),
     FAVORITES("Favorites", Icons.Default.Favorite),
     UPLOAD("Upload", Icons.Default.Add),
-    PLAY("Play", Icons.Default.PlayArrow)
+    PLAY("Play", Icons.Default.PlayArrow),
+    LOGIN("Login", Icons.Default.Login),
+    SIGNUP("SignUp", Icons.Default.Add),
+    EXIT("Exit", Icons.Default.ExitToApp)
 }

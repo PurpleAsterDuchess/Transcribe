@@ -35,6 +35,7 @@ import com.example.transcribe.screens.play.PlayViewModel
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.transcribe.navigation.NavScreen
 
 
 @Composable
@@ -63,6 +64,9 @@ fun MainScreen(modifier: Modifier = Modifier,
         }
     }.collectAsStateWithLifecycle(initialValue = null)
 
+    val authRoutes = listOf(NavScreen.Login.route, NavScreen.SignUp.route)
+    val showNav = currentRoute !in authRoutes
+
     LaunchedEffect(currentRoute, currentTranscription) {
         if (currentRoute?.contains("play") == true) {
             if (currentTranscription != null) {
@@ -81,62 +85,68 @@ fun MainScreen(modifier: Modifier = Modifier,
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet {
-                DrawerContent(
-                    menuTitle = stringResource(R.string.menu_name),
-                    selectedRoute = currentlySelectedMenuItem,
-                    onItemClick = { menuItem ->
-                        if (currentlySelectedMenuItem != menuItem.route) {
-                            coroutineScope.launch {
-                                drawerState.close()
-                                navController.navigate(menuItem.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+            if (showNav) {
+                ModalDrawerSheet {
+                    DrawerContent(
+                        menuTitle = stringResource(R.string.menu_name),
+                        selectedRoute = currentlySelectedMenuItem,
+                        onItemClick = { menuItem ->
+                            if (currentlySelectedMenuItem != menuItem.route) {
+                                coroutineScope.launch {
+                                    drawerState.close()
+                                    navController.navigate(menuItem.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
+                            } else {
+                                coroutineScope.launch { drawerState.close() }
                             }
                         }
-                        else { coroutineScope.launch { drawerState.close() }
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     ) {
         Scaffold(
             modifier = modifier,
             topBar = {
-                TopBar(
-                    text = topBarTitle,
-                    onMenuIconClick = {
-                        coroutineScope.launch {
-                            drawerState.open()
-                        }
-                    },
-                    actions = {
-                        if (currentRoute?.contains("play") == true && currentTranscription != null) {
-                            IconButton(onClick = {
-                                if (playVm.isPlayingSong) {
-                                    playVm.stopAudio()
-                                } else {
-                                    playVm.playAudio(context, currentTranscription?.fileUri)
+                if (showNav) {
+                    TopBar(
+                        text = topBarTitle,
+                        onMenuIconClick = {
+                            coroutineScope.launch {
+                                drawerState.open()
+                            }
+                        },
+                        actions = {
+                            if (currentRoute?.contains("play") == true && currentTranscription != null) {
+                                IconButton(onClick = {
+                                    if (playVm.isPlayingSong) {
+                                        playVm.stopAudio()
+                                    } else {
+                                        playVm.playAudio(context, currentTranscription?.fileUri)
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = if (playVm.isPlayingSong) androidx.compose.material.icons.Icons.Default.Stop else androidx.compose.material.icons.Icons.Default.PlayArrow,
+                                        contentDescription = if (playVm.isPlayingSong) "Stop" else "Play"
+                                    )
                                 }
-                            }) {
-                                Icon(
-                                    imageVector = if (playVm.isPlayingSong) androidx.compose.material.icons.Icons.Default.Stop else androidx.compose.material.icons.Icons.Default.PlayArrow,
-                                    contentDescription = if (playVm.isPlayingSong) "Stop" else "Play"
-                                )
                             }
                         }
-                    }
-                )
+                    )
+                }
             },
             bottomBar = {
-                BottomNavBar(
-                    navController = navController
-                )
+                if (showNav) {
+                    BottomNavBar(
+                        navController = navController
+                    )
+                }
             }
         ) { innerPadding ->
             NavigationGraph(navController = navController,

@@ -8,4 +8,7 @@ sealed class NavScreen(var icon: AppDestinations,
     data object Upload: NavScreen(AppDestinations.UPLOAD, "upload")
     data object Favorites: NavScreen(AppDestinations.FAVORITES, "favorites")
     data object Play: NavScreen(AppDestinations.PLAY, "play")
+    data object Login: NavScreen(AppDestinations.LOGIN, "login")
+    data object SignUp: NavScreen(AppDestinations.SIGNUP, "signup")
+    data object EXIT: NavScreen(AppDestinations.EXIT, "exit")
 }

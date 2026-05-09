@@ -7,12 +7,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
 fun CustomTextField(hintText: String,
                     text: String,
+                    isPasswordField: Boolean = false,
                     onValueChange: (String) -> Unit,
                     errorMessage: String,
                     errorPresent: Boolean,
@@ -27,11 +30,12 @@ fun CustomTextField(hintText: String,
             label = {
                 Text(hintText)
             },
+            visualTransformation = if (isPasswordField) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = modifier
         )
         Text(
             modifier = Modifier.padding(10.dp),
-            text =  if (errorPresent) "" else errorMessage,
+            text =  if (errorPresent) errorMessage else "",
             fontSize = 14.sp,
             color = Color.Red,
         )

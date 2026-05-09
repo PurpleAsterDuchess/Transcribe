@@ -1,9 +1,11 @@
 package com.example.transcribe.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
@@ -27,14 +29,17 @@ fun DrawerContent(
     val tempDrawerItems = listOf(
         NavScreen.Play,
     )
-    ModalDrawerSheet{
-        LazyColumn (modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 12.dp),
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             item {
                 Text(
-                    modifier = Modifier.padding(bottom = 24.dp),
+                    modifier = Modifier.padding(vertical = 24.dp),
                     text = menuTitle,
                     style = MaterialTheme.typography.headlineMedium
                 )
@@ -45,7 +50,7 @@ fun DrawerContent(
             ) { item ->
                 NavigationDrawerItem(
                     label = {
-                        Text(text = item.route)
+                        Text(text = item.route.replaceFirstChar { it.uppercase() })
                     },
                     selected = item.route == selectedRoute,
                     onClick = { onItemClick(item) },
@@ -59,5 +64,23 @@ fun DrawerContent(
                 )
             }
         }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        NavigationDrawerItem(
+            label = {
+                Text(text = "Sign Out")
+            },
+            selected = false,
+            onClick = { onItemClick(NavScreen.EXIT) },
+            icon = {
+                Icon(
+                    imageVector = NavScreen.EXIT.icon.icon,
+                    contentDescription = "Sign Out",
+                )
+            },
+            modifier = Modifier
+                .padding(NavigationDrawerItemDefaults.ItemPadding)
+                .padding(bottom = 12.dp)
+        )
     }
 }

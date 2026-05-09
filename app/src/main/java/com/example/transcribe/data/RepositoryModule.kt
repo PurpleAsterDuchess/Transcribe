@@ -1,6 +1,8 @@
 package com.example.transcribe.data
 
 import android.content.Context
+import com.google.firebase.auth.FirebaseAuth
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -10,21 +12,32 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RepositoryModule {
-    @Provides
-    @Singleton
-    fun provideTranscriptionDB(@ApplicationContext context: Context): TranscriptionDB {
-        return TranscriptionDB.getDatabase(context)
-    }
+abstract class RepositoryModule {
 
-    @Provides
-    fun provideTranscriptionDao(database: TranscriptionDB): TranscriptionDAO {
-        return database.transcriptionDAO()
-    }
-
-    @Provides
+    @Binds
     @Singleton
-    fun provideLocalRepo(transcriptionDAO: TranscriptionDAO): TranscriptionRepository {
-        return LocalTranscriptionRepository(transcriptionDAO)
+    abstract fun bindAuthRepository(authRepository: AuthRepository): AuthRepo
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideTranscriptionDB(@ApplicationContext context: Context): TranscriptionDB {
+            return TranscriptionDB.getDatabase(context)
+        }
+
+        @Provides
+        fun provideTranscriptionDao(database: TranscriptionDB): TranscriptionDAO {
+            return database.transcriptionDAO()
+        }
+
+        @Provides
+        @Singleton
+        fun provideLocalRepo(transcriptionDAO: TranscriptionDAO): TranscriptionRepository {
+            return LocalTranscriptionRepository(transcriptionDAO)
+        }
+
+        @Provides
+        @Singleton
+        fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
     }
 }
