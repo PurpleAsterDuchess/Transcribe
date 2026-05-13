@@ -44,8 +44,11 @@ fun PlayScreen(
     context: Context,
     modifier: Modifier = Modifier
 ) {
-    val transcription by vm.getTranscriptionById(songId)
-        .collectAsStateWithLifecycle(initialValue = null)
+    LaunchedEffect(songId) {
+        vm.getTranscriptionById(songId)
+    }
+
+    val transcription = vm.currentTranscription
 
     var isEditing by remember { mutableStateOf(false) }
     var editedTitle by remember { mutableStateOf("") }
@@ -150,7 +153,7 @@ fun PlayScreen(
                 IconButton(
                     onClick = {
                         transcription?.let {
-                            vm.deleteTranscription(it) {
+                            vm.deleteTranscription(it.id) {
                                 navController.popBackStack()
                             }
                         }

@@ -2,32 +2,33 @@ package com.example.transcribe.screens.signup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.transcribe.R
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.transcribe.components.CustomButton
-import com.example.transcribe.components.CustomTextField
-import com.example.transcribe.components.ProgressBar
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import com.example.transcribe.R
 import com.example.transcribe.data.Response
+import com.example.transcribe.data.UserRole
+import com.example.transcribe.components.CustomButton
+import com.example.transcribe.components.ProgressBar
+import com.example.transcribe.components.CustomTextField
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier,
-                vm: LoginViewModel = hiltViewModel(),
-                navigateToSignUpScreen: () -> Unit,
-                navigateToHomeScreen: () -> Unit,
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    vm: LoginViewModel = hiltViewModel(),
+    updateRoleForUser: (UserRole) -> Unit,
+    navigateToSignUpScreen: () -> Unit,
+    navigateToHomeScreen: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -38,16 +39,22 @@ fun LoginScreen(modifier: Modifier = Modifier,
     }
 
     val response = vm.signInResponse
+
     if (response is Response.Success) {
         LaunchedEffect(response) {
             if (vm.isEmailVerified) {
+                updateRoleForUser(vm.userRole)
                 navigateToHomeScreen()
             } else {
                 snackbarHostState.showSnackbar("Email not verified")
             }
         }
     }
-
+    if (response is Response.Failure){
+        LaunchedEffect(response) {
+            snackbarHostState.showSnackbar(response.e.message ?: "An unexpected error occurred")
+        }
+    }
 
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState) },
@@ -64,7 +71,6 @@ fun LoginScreen(modifier: Modifier = Modifier,
                 CustomTextField(
                     hintText = stringResource(R.string.email),
                     text = vm.loginUiState.email,
-                    isPasswordField = false,
                     onValueChange = { vm.onChange(email = it) },
                     errorMessage = stringResource(R.string.email_error_message),
                     errorPresent = vm.loginUiState.emailIsInvalid()
@@ -78,7 +84,6 @@ fun LoginScreen(modifier: Modifier = Modifier,
                     errorMessage = stringResource(R.string.password_error_message),
                     errorPresent = vm.loginUiState.passwordIsInvalid()
                 )
-
 
                 SmallSpacer()
                 CustomButton(

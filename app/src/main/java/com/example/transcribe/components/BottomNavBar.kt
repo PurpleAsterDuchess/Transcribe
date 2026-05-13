@@ -23,7 +23,8 @@ private fun createListOfItems(enabled: Boolean): List<NavScreen> {
 }
 
 @Composable
-fun BottomNavBar(navController: NavController) {
+fun BottomNavBar(
+    navController: NavController) {
 
     NavigationBar(
         containerColor = Color.White,

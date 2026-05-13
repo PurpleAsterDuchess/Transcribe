@@ -23,5 +23,9 @@ password</string>
     <string name="sign_up_button">Sign Up</string>
     <string name="back_button">Back</string>
     <string name="submit_button">Submit</string>
+    <string name="first_name_hint">First Name</string>
+    <string name="first_name_error_message">Firstname is blank</string>
+    <string name="surname_hint">Surname</string>
+    <string name="surname_error_message">Surname is blank</string>
 
 </resources>

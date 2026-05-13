@@ -55,14 +55,13 @@ fun MainScreen(modifier: Modifier = Modifier,
     val defaultTitle = stringResource(R.string.app_name)
 
     val songId = navBackStackEntry?.arguments?.getString("songId")
-    val currentTranscription by remember(songId) {
-        val id = songId?.toIntOrNull()
-        if (id != null) {
-            playVm.getTranscriptionById(id.toString())
-        } else {
-            kotlinx.coroutines.flow.flowOf(null)
+    LaunchedEffect(songId) {
+        if (songId != null) {
+            playVm.getTranscriptionById(songId)
         }
-    }.collectAsStateWithLifecycle(initialValue = null)
+    }
+
+    val currentTranscription = playVm.currentTranscription
 
     val authRoutes = listOf(NavScreen.Login.route, NavScreen.SignUp.route)
     val showNav = currentRoute !in authRoutes

@@ -9,7 +9,6 @@ import androidx.room.RoomDatabase
     version = 1,
     exportSchema = false)
 abstract class TranscriptionDB : RoomDatabase() {
-    abstract fun transcriptionDAO() : TranscriptionDAO
 
     companion object {
         @Volatile

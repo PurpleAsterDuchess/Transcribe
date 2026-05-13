@@ -2,6 +2,7 @@ package com.example.transcribe.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -13,20 +14,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.transcribe.screens.FavoritesScreen
 import com.example.transcribe.R
+import com.example.transcribe.data.Transcription
 import com.example.transcribe.screens.play.PlayScreen
 import com.example.transcribe.screens.home.HomeScreen
 import com.example.transcribe.screens.upload.UploadScreen
 import com.example.transcribe.screens.signup.SignUpScreen
 import com.example.transcribe.screens.signup.LoginScreen
 import kotlin.system.exitProcess
+import com.example.transcribe.data.UserRole
+import com.example.transcribe.screens.home.AdminHomeScreen
 
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
     modifier: Modifier
 ) {
+    var userRole by remember { mutableStateOf(UserRole.UNKNOWN)}
     val context = LocalContext.current.applicationContext
     var selectedTranscriptionIndex by remember{ mutableIntStateOf(-1) }
+    var selectedTranscription: Transcription? = null
 
     NavHost(
         navController = navController,
@@ -38,7 +44,15 @@ fun NavigationGraph(
                     navController.navigate(NavScreen.SignUp.route)
                 },
                 navigateToHomeScreen = {
-                    navController.navigate(NavScreen.Home.route)
+                    if (userRole == UserRole.ADMIN) {
+                        navController.navigate(NavScreen.Admin_Home.route)
+                    } else if (userRole == UserRole.USER) {
+                        navController.navigate(NavScreen.Home.route)
+                    }
+
+                },
+                updateRoleForUser = { newUserRole ->
+                    userRole = newUserRole
                 },
                 modifier = modifier
             )
@@ -55,12 +69,30 @@ fun NavigationGraph(
 
         composable(NavScreen.Home.route) {
             HomeScreen(
-                selectedIndex = selectedTranscriptionIndex,
                 onIndexChange = {
-                    selectedTranscriptionIndex = it
+                    selectedTranscription = it
+                },
+                onClickToEdit =  {
+                    if(selectedTranscription != null)
+                        navController.navigate("edit")
                 },
                 navController = navController,
-                text = stringResource(R.string.home_button),
+                context = context,
+                modifier = modifier
+            )
+        }
+
+        composable(NavScreen.Admin_Home.route) {
+            AdminHomeScreen(
+                userRole = userRole,
+                onIndexChange = {
+                    selectedTranscription = it
+                },
+                onClickToEdit =  {
+                    if(selectedTranscription != null)
+                        navController.navigate("edit")
+                },
+                navController = navController,
                 context = context,
                 modifier = modifier
             )

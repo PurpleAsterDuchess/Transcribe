@@ -11,36 +11,42 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.transcribe.data.Transcription
-import com.example.transcribe.data.TranscriptionRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class PlayViewModel @Inject constructor(
-    private val repo: TranscriptionRepository
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
     private var mediaPlayer: MediaPlayer? = null
+    private val collection = firestore.collection("transcriptions")
 
     var isPlayingSong by mutableStateOf(false)
         private set
 
-    fun getTranscriptionById(songId: String?): Flow<Transcription?> {
-        val id = songId?.toIntOrNull() ?: return emptyFlow()
-        return repo.findById(id)
+    var currentTranscription by mutableStateOf<Transcription?>(null)
+        private set
+
+    fun getTranscriptionById(songId: String?) {
+        if (songId == null) return
+
+        viewModelScope.launch(errorHandler) {
+            val snapshot = collection.document(songId).get().await()
+            currentTranscription = snapshot.toObject<Transcription>()
+        }
     }
 
     fun playAudio(context: Context, fileUriString: String?) {
         if (fileUriString == null) return
-
         val uri = Uri.parse(fileUriString)
 
         mediaPlayer?.release()
-
         mediaPlayer = MediaPlayer().apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
@@ -71,16 +77,16 @@ class PlayViewModel @Inject constructor(
         isPlayingSong = false
     }
 
-    fun deleteTranscription(transcription: Transcription, onDeleted: () -> Unit) {
+    fun deleteTranscription(transcriptionId: String, onDeleted: () -> Unit) {
         viewModelScope.launch(errorHandler) {
-            repo.delete(transcription)
+            collection.document(transcriptionId).delete().await()
             onDeleted()
         }
     }
 
     fun updateTranscription(transcription: Transcription) {
         viewModelScope.launch(errorHandler) {
-            repo.edit(transcription)
+            collection.document(transcription.id).set(transcription).await()
         }
     }
 
@@ -91,6 +97,5 @@ class PlayViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         mediaPlayer?.release()
-        mediaPlayer = null
     }
 }
