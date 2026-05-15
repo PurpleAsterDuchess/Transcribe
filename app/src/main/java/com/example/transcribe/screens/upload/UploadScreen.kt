@@ -36,7 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.transcribe.R
 import androidx.compose.material.icons.filled.UploadFile
-
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
 
 
 @Composable
@@ -80,9 +81,9 @@ fun UploadScreen(modifier: Modifier = Modifier,
                 CustomTextField(
                     stringResource(R.string.title),
                     text = vm.uiState.title,
-                    onValueChange = { vm.onChange(title = (it)) },
+                    onValueChange = { vm.onChange(title = it) },
                     errorMessage = stringResource(R.string.title_error_msg),
-                    errorPresent = vm.uiState.title.isNotBlank(),
+                    errorPresent = vm.uiState.title.isBlank(),
                     modifier = Modifier.focusRequester(focusRequester)
                 )
                 CustomTextField(
@@ -90,8 +91,8 @@ fun UploadScreen(modifier: Modifier = Modifier,
                     text = vm.uiState.author,
                     onValueChange = { vm.onChange(author = (it)) },
                     errorMessage = stringResource(R.string.author_error_msg),
-                    errorPresent = vm.uiState.author.isNotBlank(),
-                    modifier = Modifier.focusRequester(focusRequester)
+                    errorPresent = vm.uiState.author.isBlank(),
+                    modifier = Modifier
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -103,13 +104,18 @@ fun UploadScreen(modifier: Modifier = Modifier,
                         .background(Color.LightGray.copy(alpha = 0.2f))
                         .border(
                             1.dp, Color.Gray,
-                            androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                            RoundedCornerShape(12.dp)
                         )
                         .clickable { filePickerLauncher.launch("*/*") },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (vm.uiState.selectedFileUri == null) androidx.compose.material.icons.Icons.Default.UploadFile else null?.let {
+                        if (vm.uiState.selectedFileUri == null) {
+                            Icon(
+                                imageVector = Icons.Default.UploadFile,
+                                contentDescription = "Upload Icon",
+                                tint = Color.Gray
+                            )
                         }
                         Text(
                             text = if (vm.uiState.selectedFileUri != null)
@@ -128,8 +134,10 @@ fun UploadScreen(modifier: Modifier = Modifier,
                         vm.upload()
                         keyboardController?.hide()
                         onClickToHome()
-                    })
+                    },
+                    enabled = vm.uiState.isValid() && vm.uiState.selectedFileUri != null
+                )
             }
-    }
+        }
     }
 }

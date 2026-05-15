@@ -1,8 +1,8 @@
 package com.example.transcribe.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,7 +21,7 @@ fun CustomTextField(hintText: String,
                     errorPresent: Boolean,
                     modifier: Modifier = Modifier){
 
-    Surface(modifier = Modifier.padding(10.dp)) {
+    Column(modifier = Modifier.padding(10.dp)) {
         OutlinedTextField(
             value = text,
             onValueChange = onValueChange,
@@ -33,11 +33,13 @@ fun CustomTextField(hintText: String,
             visualTransformation = if (isPasswordField) PasswordVisualTransformation() else VisualTransformation.None,
             modifier = modifier
         )
-        Text(
-            modifier = Modifier.padding(10.dp),
-            text =  if (errorPresent) errorMessage else "",
-            fontSize = 14.sp,
-            color = Color.Red,
-        )
+        if (errorPresent) {
+            Text(
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                text = errorMessage,
+                fontSize = 14.sp,
+                color = Color.Red,
+            )
+        }
     }
 }

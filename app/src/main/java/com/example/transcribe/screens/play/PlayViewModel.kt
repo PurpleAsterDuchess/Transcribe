@@ -10,22 +10,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transcribe.data.AuthRepo
 import com.example.transcribe.data.Transcription
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
+import com.example.transcribe.data.UserRepo
+import com.example.transcribe.data.TranscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import java.io.File
 
 @HiltViewModel
 class PlayViewModel @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val repo: TranscriptionRepository,
+    private val userRepo: UserRepo,
+    private val authRepo: AuthRepo
 ) : ViewModel() {
 
+    private val errorHandler = CoroutineExceptionHandler { _, exception ->
+        Log.e("PlayViewModel", "Error: ${exception.message}")
+    }
+
     private var mediaPlayer: MediaPlayer? = null
-    private val collection = firestore.collection("transcriptions")
 
     var isPlayingSong by mutableStateOf(false)
         private set
@@ -34,35 +40,70 @@ class PlayViewModel @Inject constructor(
         private set
 
     fun getTranscriptionById(songId: String?) {
-        if (songId == null) return
+        if (songId.isNullOrBlank()) return
 
         viewModelScope.launch(errorHandler) {
-            val snapshot = collection.document(songId).get().await()
-            currentTranscription = snapshot.toObject<Transcription>()
+            val transcription = repo.getById(songId)
+            if (transcription != null) {
+                val userId = authRepo.getUserId()
+                if (!userId.isNullOrBlank()) {
+                    val user = userRepo.getById(userId)
+                    if (user != null) {
+                        transcription.author = "${user.firstName} ${user.surname}".trim()
+                        repo.edit(transcription)
+                        
+                        userRepo.addRecentTranscription(userId, transcription)
+                    }
+                }
+                currentTranscription = transcription
+            }
         }
     }
 
     fun playAudio(context: Context, fileUriString: String?) {
-        if (fileUriString == null) return
+        if (fileUriString.isNullOrBlank()) {
+            Log.e("PlayViewModel", "No file URI provided")
+            return
+        }
+        
         val uri = Uri.parse(fileUriString)
 
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build()
-            )
-            setDataSource(context, uri)
-            setOnPreparedListener { mp ->
-                mp.start()
-                isPlayingSong = true
+        if (uri.scheme == "file") {
+            val file = File(uri.path ?: "")
+            if (!file.exists()) {
+                Log.e("PlayViewModel", "Audio file missing from storage: ${file.absolutePath}")
+                return
             }
-            setOnCompletionListener {
-                isPlayingSong = false
+        }
+
+        try {
+            mediaPlayer?.release()
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .build()
+                )
+                setDataSource(context, uri)
+                setOnPreparedListener { mp ->
+                    mp.start()
+                    isPlayingSong = true
+                }
+                setOnCompletionListener {
+                    isPlayingSong = false
+                }
+                setOnErrorListener { _, what, extra ->
+                    Log.e("PlayViewModel", "MediaPlayer error: $what, $extra")
+                    isPlayingSong = false
+                    true
+                }
+                prepareAsync()
             }
-            prepareAsync()
+        } catch (e: Exception) {
+            Log.e("PlayViewModel", "Playback failed: ${e.message}")
+            isPlayingSong = false
+            mediaPlayer = null
         }
     }
 
@@ -78,20 +119,22 @@ class PlayViewModel @Inject constructor(
     }
 
     fun deleteTranscription(transcriptionId: String, onDeleted: () -> Unit) {
+        if (transcriptionId.isBlank()) return
         viewModelScope.launch(errorHandler) {
-            collection.document(transcriptionId).delete().await()
+            val userId = authRepo.getUserId()
+            if (!userId.isNullOrBlank()) {
+                userRepo.removeRecentTranscription(userId, transcriptionId)
+            }
+            repo.delete(transcriptionId)
             onDeleted()
         }
     }
 
     fun updateTranscription(transcription: Transcription) {
+        if (transcription.id.isBlank()) return
         viewModelScope.launch(errorHandler) {
-            collection.document(transcription.id).set(transcription).await()
+            repo.edit(transcription)
         }
-    }
-
-    private val errorHandler = CoroutineExceptionHandler { _, exception ->
-        Log.e("PlayViewModel", "Error: ${exception.message}")
     }
 
     override fun onCleared() {

@@ -1,6 +1,5 @@
 package com.example.transcribe.data
 
-import dagger.Provides
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -15,7 +14,7 @@ interface Repository <T>{
 interface TranscriptionRepository : Repository<Transcription> {
     suspend fun getByTitle(title: String): Transcription?
     suspend fun getByAuthor(author: String): Transcription?
-
+    fun getRecent(userId: String, limit: Long): Flow<List<Transcription>>
 }
 
 class LocalTranscriptionRepository @Inject constructor (
@@ -38,4 +37,6 @@ class LocalTranscriptionRepository @Inject constructor (
         transcriptionDAO.getByTitle(title)
     override suspend fun getByAuthor(author: String): Transcription? =
         transcriptionDAO.getByAuthor(author)
+    override fun getRecent(userId: String, limit: Long): Flow<List<Transcription>> = 
+        transcriptionDAO.getRecent(userId, limit)
 }

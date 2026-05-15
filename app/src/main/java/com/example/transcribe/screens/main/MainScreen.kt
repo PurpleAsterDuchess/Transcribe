@@ -29,8 +29,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.transcribe.components.DrawerContent
 import com.example.transcribe.components.TopBar
 import kotlinx.coroutines.launch
-import com.example.transcribe.data.Transcription
-import com.example.transcribe.data.TranscriptionRepository
 import com.example.transcribe.screens.play.PlayViewModel
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -50,6 +48,8 @@ fun MainScreen(modifier: Modifier = Modifier,
     val currentlySelectedMenuItem = navBackStackEntry?.destination?.route
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val currentRoute = navBackStackEntry?.destination?.route
+
+    val recentTranscriptions by vm.recentTranscriptions.collectAsStateWithLifecycle()
 
     var topBarTitle by remember { mutableStateOf("") }
     val defaultTitle = stringResource(R.string.app_name)
@@ -88,6 +88,7 @@ fun MainScreen(modifier: Modifier = Modifier,
                 ModalDrawerSheet {
                     DrawerContent(
                         menuTitle = stringResource(R.string.menu_name),
+                        recentTranscriptions = recentTranscriptions,
                         selectedRoute = currentlySelectedMenuItem,
                         onItemClick = { menuItem ->
                             if (currentlySelectedMenuItem != menuItem.route) {
@@ -103,6 +104,12 @@ fun MainScreen(modifier: Modifier = Modifier,
                                 }
                             } else {
                                 coroutineScope.launch { drawerState.close() }
+                            }
+                        },
+                        onTranscriptionClick = { transcription ->
+                            coroutineScope.launch {
+                                drawerState.close()
+                                navController.navigate("${NavScreen.Play.route}/${transcription.id}")
                             }
                         }
                     )

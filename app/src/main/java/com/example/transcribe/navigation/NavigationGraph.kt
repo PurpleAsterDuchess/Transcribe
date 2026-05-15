@@ -112,21 +112,17 @@ fun NavigationGraph(
                 navController = navController,
                 text = stringResource(R.string.favorites_button),
                 context = context,
-                modifier = modifier,
-//                selectedContactIndex = selectedContactIndex,
-//                onClickToHome = {
-//                    if (selectedContactIndex != -1)
-//                        navController.popBackStack()
-//                }
+                modifier = modifier
             )
         }
 
         composable(
             route = "${NavScreen.Play.route}/{songId}"
-        ) {backStackEntry ->    val songId = backStackEntry.arguments?.getString("songId")
+        ) { backStackEntry ->
+            val songId = backStackEntry.arguments?.getString("songId")
             PlayScreen(
                 navController = navController,
-                songId= songId,
+                songId = songId,
                 context = context,
                 modifier = modifier
             )
