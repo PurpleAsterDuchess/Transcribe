@@ -18,11 +18,12 @@ import com.example.transcribe.data.UserRepo
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor (
-private val auth: AuthRepository,
-private val userRepo: UserRepo
+    private val auth: AuthRepository,
+    private val userRepo: UserRepo
 ) : ViewModel() {
     var signUpUiState by mutableStateOf(SignUpUiState())
         private set
+
     fun onChange(firstName: String = signUpUiState.firstName,
                  surname: String = signUpUiState.surname,
                  email: String = signUpUiState.email,
@@ -40,20 +41,17 @@ private val userRepo: UserRepo
     var signUpResponse by mutableStateOf<Response>(Response.Startup)
         private set
 
-    var sendEmailVerificationResponse by mutableStateOf<Response>(Response.Startup)
-        private set
-
     fun signUpWithEmailAndPassword() {
         viewModelScope.launch {
             if (signUpUiState.isValid()) {
                 signUpResponse = Response.Loading
-                signUpResponse = auth.signUpWithEmailAndPassword(signUpUiState.email, signUpUiState.password)
+                val result = auth.signUpWithEmailAndPassword(signUpUiState.email, signUpUiState.password)
+                signUpResponse = result
 
-                if (signUpResponse is Response.Failure) {
-                    _uiEvents.send("Unable to create sign up")
-                }
-                if (signUpResponse is Response.NotConfirmed){
-                    sendEmailVerification()
+                if (result is Response.Failure) {
+                    _uiEvents.send("Unable to create sign up: ${result.e.message}")
+                } else if (result is Response.NotConfirmed) {
+                    _uiEvents.send("Confirm details via email")
                     saveUserDetailsToFirestore()
                 }
             }
@@ -62,19 +60,17 @@ private val userRepo: UserRepo
 
     fun sendEmailVerification() {
         viewModelScope.launch {
-            sendEmailVerificationResponse = Response.Loading
-            sendEmailVerificationResponse = auth.sendEmailVerification()
-            if (sendEmailVerificationResponse is Response.Failure) {
-                _uiEvents.send("Unable to send verification email")
-            }
-            if (sendEmailVerificationResponse is Response.Success){
-                _uiEvents.send("Confirm details via email")
+            val response = auth.sendEmailVerification()
+            if (response is Response.Failure) {
+                _uiEvents.send("Unable to send verification email: ${response.e.message}")
+            } else if (response is Response.Success) {
+                _uiEvents.send("Confirm details via email.")
             }
         }
     }
 
-    fun saveUserDetailsToFirestore() {
-        val uid = auth.getUserId()?: return
+    private suspend fun saveUserDetailsToFirestore() {
+        val uid = auth.getUserId() ?: return
 
         val newUserDetails = User(
             uid = uid,
@@ -83,11 +79,9 @@ private val userRepo: UserRepo
             email = signUpUiState.email,
         )
 
-        viewModelScope.launch {
-            val response = userRepo.createUserProfile(newUserDetails)
-            if (response is Response.Failure) {
-                _uiEvents.send("Profile sync failed: ${response.e.message}")
-            }
+        val response = userRepo.createUserProfile(newUserDetails)
+        if (response is Response.Failure) {
+            _uiEvents.send("Profile sync failed: ${response.e.message}")
         }
     }
 }

@@ -6,6 +6,9 @@ import javax.inject.Inject
 interface UserRepo : Repository<User>{
     suspend fun createUserProfile(newUserDetails: User): Response
     suspend fun getUserRole(uid: String): UserRole
+    fun getUserFlow(uid: String): Flow<User?>
+    suspend fun addRecentTranscription(uid: String, transcription: Transcription)
+    suspend fun removeRecentTranscription(uid: String, transcriptionId: String)
 }
 
 class UserRepository @Inject constructor(
@@ -16,9 +19,7 @@ class UserRepository @Inject constructor(
 
     override suspend fun insert(item: User) = dao.add(item)
 
-
     override suspend fun delete(id: String) = dao.delete(id)
-
 
     override suspend fun edit(item: User) = dao.update(item)
 
@@ -28,7 +29,14 @@ class UserRepository @Inject constructor(
 
     override suspend fun getUserRole(uid: String): UserRole {
         val user = dao.getById(uid)
-
         return user?.role ?: UserRole.UNKNOWN
     }
+
+    override fun getUserFlow(uid: String): Flow<User?> = dao.getUserFlow(uid)
+
+    override suspend fun addRecentTranscription(uid: String, transcription: Transcription) = 
+        dao.addRecentTranscription(uid, transcription)
+
+    override suspend fun removeRecentTranscription(uid: String, transcriptionId: String) =
+        dao.removeRecentTranscription(uid, transcriptionId)
 }

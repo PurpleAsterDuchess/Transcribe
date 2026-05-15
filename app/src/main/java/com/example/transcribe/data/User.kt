@@ -3,9 +3,10 @@ package com.example.transcribe.data
 import com.google.firebase.firestore.DocumentId
 
 data class User(
-    @DocumentId val uid: String = "",
-    val firstName: String = "",
-    val surname: String = "",
-    val email: String = "",
-    val role: UserRole = UserRole.ADMIN
+    var uid: String = "",
+    var firstName: String = "",
+    var surname: String = "",
+    var email: String = "",
+    var role: UserRole = UserRole.ADMIN,
+    var recentTranscriptions: List<Transcription> = emptyList()
 )

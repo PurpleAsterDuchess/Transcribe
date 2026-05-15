@@ -45,7 +45,6 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             signInResponse = Response.Loading
             val message = try {
-                // 2. Add a timeout (e.g., 10 seconds)
                 withTimeout(10000L) {
                     val result = auth.sendPasswordResetEmail(loginUiState.email)
 
@@ -79,6 +78,8 @@ class LoginViewModel @Inject constructor(
                     Log.e("LoginViewModel", "Error fetching user role", e)
                     signInResponse = Response.Failure(e)
                 }
+            } else if (response is Response.Failure) {
+                signInResponse = response
             }
 
             if (signInResponse is Response.Failure) {

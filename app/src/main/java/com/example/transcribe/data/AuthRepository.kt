@@ -1,11 +1,26 @@
 package com.example.transcribe.data
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(private val auth: FirebaseAuth) : AuthRepo {
     override val currentUser get() = auth.currentUser
+
+    override val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener { auth ->
+            trySend(auth.currentUser)
+        }
+        auth.addAuthStateListener(listener)
+        awaitClose {
+            auth.removeAuthStateListener(listener)
+        }
+    }
 
     override suspend fun signInWithEmailAndPassword(email: String, password: String): Response {
         return try {
@@ -19,10 +34,18 @@ class AuthRepository @Inject constructor(private val auth: FirebaseAuth) : AuthR
     override suspend fun signUpWithEmailAndPassword(email: String, password: String): Response {
         return try {
             val result = auth.createUserWithEmailAndPassword(email.trim(), password.trim()).await()
-            // Send verification email immediately using the returned user object
-            result.user?.sendEmailVerification()?.await()
+
+            result.user?.sendEmailVerification()?.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("AuthRepository", "Verification email sent successfully.")
+                } else {
+                    Log.e("AuthRepository", "Failed to send verification email: ${task.exception?.message}")
+                }
+            }
+
             Response.NotConfirmed
         } catch (e: Exception) {
+            Log.e("AuthRepository", "Sign-up failed: ${e.message}")
             Response.Failure(e)
         }
     }

@@ -11,6 +11,8 @@ import javax.inject.Inject
 import com.example.transcribe.screens.TranscriptionUIState
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.data.TranscriptionRepository
+import com.example.transcribe.data.AuthRepo
+import com.example.transcribe.data.UserRepo
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,10 +26,33 @@ import java.io.FileOutputStream
 @HiltViewModel
 class UploadViewModel @Inject constructor(
     private val repo: TranscriptionRepository,
+    private val authRepo: AuthRepo,
+    private val userRepo: UserRepo,
     @ApplicationContext private val context: Context
 ): ViewModel() {
+
+    private val errorHandler = CoroutineExceptionHandler { _, exception ->
+        Log.e("UploadViewModel", "Upload error: ${exception.message}")
+    }
+
     var uiState by mutableStateOf(TranscriptionUIState())
         private set
+
+    init {
+        loadUserProfile()
+    }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch(errorHandler) {
+            val uid = authRepo.getUserId()
+            if (!uid.isNullOrEmpty()) {
+                val user = userRepo.getById(uid)
+                user?.let {
+                    uiState = uiState.copy(author = "${it.firstName} ${it.surname}".trim())
+                }
+            }
+        }
+    }
         
     fun onFileSelected(uri: Uri?) {
         uiState = uiState.copy(selectedFileUri = uri)
@@ -49,18 +74,28 @@ class UploadViewModel @Inject constructor(
         if (uiState.isValid()) {
             val currentUiState = uiState
             viewModelScope.launch(errorHandler) {
+                val uid = authRepo.getUserId() ?: ""
+                if (uid.isEmpty()) return@launch
+
+                val user = userRepo.getById(uid)
+                val authorName = user?.let { "${it.firstName} ${it.surname}".trim() } ?: currentUiState.author
+
                 var savedFileUri: String? = null
-                
                 currentUiState.selectedFileUri?.let { uri ->
                     savedFileUri = saveFileToInternalStorage(uri)
                 }
 
                 val newTranscription = Transcription(
                     title = currentUiState.title,
-                    author = currentUiState.author,
+                    author = authorName,
                     fileUri = savedFileUri,
+                    userId = uid
                 )
+                
                 repo.insert(newTranscription)
+
+                userRepo.addRecentTranscription(uid, newTranscription)
+                
                 clear()
             }
         }
@@ -83,11 +118,8 @@ class UploadViewModel @Inject constructor(
         }
     }
 
-    val errorHandler = CoroutineExceptionHandler { _, exception ->
-        Log.e("UploadViewModel", "Upload error: ${exception.message}")
-    }
-
     private fun clear(){
         uiState = TranscriptionUIState()
+        loadUserProfile()
     }
 }

@@ -50,11 +50,6 @@ fun LoginScreen(
             }
         }
     }
-    if (response is Response.Failure){
-        LaunchedEffect(response) {
-            snackbarHostState.showSnackbar(response.e.message ?: "An unexpected error occurred")
-        }
-    }
 
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState) },
@@ -73,7 +68,7 @@ fun LoginScreen(
                     text = vm.loginUiState.email,
                     onValueChange = { vm.onChange(email = it) },
                     errorMessage = stringResource(R.string.email_error_message),
-                    errorPresent = vm.loginUiState.emailIsInvalid()
+                    errorPresent = vm.loginUiState.email.isNotEmpty() && vm.loginUiState.emailIsInvalid()
                 )
                 SmallSpacer()
                 CustomTextField(
@@ -82,7 +77,7 @@ fun LoginScreen(
                     isPasswordField = true,
                     onValueChange = { vm.onChange(password = it) },
                     errorMessage = stringResource(R.string.password_error_message),
-                    errorPresent = vm.loginUiState.passwordIsInvalid()
+                    errorPresent = vm.loginUiState.password.isNotEmpty() && vm.loginUiState.passwordIsInvalid()
                 )
 
                 SmallSpacer()
@@ -92,24 +87,25 @@ fun LoginScreen(
                         keyboard?.hide()
                         vm.signInWithEmailAndPassword()
                     },
-                    enabled = vm.loginUiState.isValid()
+                    enabled = vm.loginUiState.isValid() && response !is Response.Loading
                 )
 
                 SmallSpacer()
                 CustomButton(
                     stringResource(R.string.forgot_password),
                     onClick = { vm.forgotPassword() },
-                    enabled = !vm.loginUiState.emailIsInvalid()
+                    enabled = vm.loginUiState.email.isNotEmpty() && !vm.loginUiState.emailIsInvalid() && response !is Response.Loading
                 )
 
                 SmallSpacer()
                 CustomButton(stringResource(R.string.sign_up_button),
-                    onClick = { navigateToSignUpScreen() }
+                    onClick = { navigateToSignUpScreen() },
+                    enabled = response !is Response.Loading
                 )
             }
         }
     )
-    //Layout on top of scaffold
+
     if (response is Response.Loading) {
         ProgressBar()
     }

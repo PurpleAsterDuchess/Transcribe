@@ -1,9 +1,11 @@
 package com.example.transcribe.data
 
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.flow.Flow
 
 interface AuthRepo {
     val currentUser: FirebaseUser?
+    val authStateFlow: Flow<FirebaseUser?>
     suspend fun signInWithEmailAndPassword(email: String, password: String): Response
     suspend fun signUpWithEmailAndPassword(email: String, password: String): Response
     fun getUserId(): String?
