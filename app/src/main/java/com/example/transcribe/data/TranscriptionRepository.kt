@@ -3,13 +3,6 @@ package com.example.transcribe.data
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-interface Repository <T>{
-    suspend fun delete(id: String)
-    suspend fun insert(transcription: T)
-    suspend fun edit(transcription: T)
-    fun getAll(): Flow<List<T>>
-    suspend fun getById(id: String): T?
-}
 
 interface TranscriptionRepository : Repository<Transcription> {
     suspend fun getByTitle(title: String): Transcription?

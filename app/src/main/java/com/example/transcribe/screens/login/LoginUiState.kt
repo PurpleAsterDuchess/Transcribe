@@ -1,4 +1,4 @@
-package com.example.transcribe.screens.signup
+package com.example.transcribe.screens.login
 
 import android.util.Patterns
 

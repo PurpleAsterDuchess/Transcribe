@@ -20,7 +20,7 @@ abstract class TranscriptionDB : RoomDatabase() {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(context,
                     TranscriptionDB::class.java,
-                    "contact_database")
+                    "transcription_database")
                     .build()
                     .also { INSTANCE = it }
             }

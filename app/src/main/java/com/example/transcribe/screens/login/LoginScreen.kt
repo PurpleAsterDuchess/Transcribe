@@ -1,4 +1,4 @@
-package com.example.transcribe.screens.signup
+package com.example.transcribe.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import com.example.transcribe.data.UserRole
 import com.example.transcribe.components.CustomButton
 import com.example.transcribe.components.ProgressBar
 import com.example.transcribe.components.CustomTextField
+import com.example.transcribe.screens.signup.SmallSpacer
 
 @Composable
 fun LoginScreen(
