@@ -20,7 +20,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner
+        testInstrumentationRunner = "com.example.transcribe.HiltTestRunner"
     }
 
     buildTypes {
@@ -62,6 +63,9 @@ dependencies {
 
     testImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
     kspTest("com.google.dagger:hilt-compiler:$hiltVersion")
+
+    androidTestImplementation("org.mockito:mockito-android:5.11.0")
+    androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

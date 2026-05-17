@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.transcribe.screens.FavoritesScreen
 import com.example.transcribe.R
+import com.example.transcribe.UserRole
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.screens.play.PlayScreen
 import com.example.transcribe.screens.home.HomeScreen
@@ -21,8 +22,7 @@ import com.example.transcribe.screens.upload.UploadScreen
 import com.example.transcribe.screens.signup.SignUpScreen
 import com.example.transcribe.screens.login.LoginScreen
 import kotlin.system.exitProcess
-import com.example.transcribe.data.UserRole
-import com.example.transcribe.screens.home.AdminHomeScreen
+import com.example.transcribe.screens.admin.AdminHomeScreen
 
 @Composable
 fun NavigationGraph(

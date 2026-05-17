@@ -6,10 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transcribe.UserRole
 import com.example.transcribe.data.AuthRepository
 import com.example.transcribe.data.Response
 import com.example.transcribe.data.UserRepo
-import com.example.transcribe.data.UserRole
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import javax.inject.Inject

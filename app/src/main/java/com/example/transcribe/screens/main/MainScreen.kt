@@ -50,6 +50,7 @@ fun MainScreen(modifier: Modifier = Modifier,
     val currentRoute = navBackStackEntry?.destination?.route
 
     val recentTranscriptions by vm.recentTranscriptions.collectAsStateWithLifecycle()
+    val userRole by vm.userRole.collectAsStateWithLifecycle()
 
     var topBarTitle by remember { mutableStateOf("") }
     val defaultTitle = stringResource(R.string.app_name)
@@ -90,6 +91,7 @@ fun MainScreen(modifier: Modifier = Modifier,
                         menuTitle = stringResource(R.string.menu_name),
                         recentTranscriptions = recentTranscriptions,
                         selectedRoute = currentlySelectedMenuItem,
+                        userRole = userRole,
                         onItemClick = { menuItem ->
                             if (currentlySelectedMenuItem != menuItem.route) {
                                 coroutineScope.launch {

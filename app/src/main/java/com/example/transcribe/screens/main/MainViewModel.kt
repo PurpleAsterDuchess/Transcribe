@@ -2,6 +2,7 @@ package com.example.transcribe.screens.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transcribe.UserRole
 import com.example.transcribe.data.AuthRepo
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.data.UserRepo
@@ -21,6 +22,22 @@ class MainViewModel @Inject constructor(
     private val authRepo: AuthRepo
 ) : ViewModel() {
     
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val userRole: StateFlow<UserRole> = authRepo.authStateFlow
+        .flatMapLatest { user ->
+            if (user == null) {
+                flowOf(UserRole.UNKNOWN)
+            } else {
+                userRepo.getUserFlow(user.uid)
+                    .map { it?.role ?: UserRole.USER }
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = UserRole.UNKNOWN
+        )
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val recentTranscriptions: StateFlow<List<Transcription>> = authRepo.authStateFlow
         .flatMapLatest { user ->

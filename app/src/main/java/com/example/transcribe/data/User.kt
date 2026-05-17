@@ -1,6 +1,6 @@
 package com.example.transcribe.data
 
-import com.google.firebase.firestore.DocumentId
+import com.example.transcribe.UserRole
 
 data class User(
     var uid: String = "",

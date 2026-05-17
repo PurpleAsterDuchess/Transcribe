@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.transcribe.UserRole
 import com.example.transcribe.data.Transcription
 import com.example.transcribe.navigation.NavScreen
 
@@ -23,14 +24,18 @@ fun DrawerContent(
     menuTitle: String,
     recentTranscriptions: List<Transcription>,
     selectedRoute: String?,
+    userRole: UserRole,
     onItemClick: (NavScreen) -> Unit,
     onTranscriptionClick: (Transcription) -> Unit
 ) {
-    val menuItems = listOf(
-        NavScreen.Home,
-        NavScreen.Upload,
-        NavScreen.Favorites
-    )
+    val menuItems = buildList {
+        add(NavScreen.Home)
+        if (userRole == UserRole.ADMIN) {
+            add(NavScreen.Admin_Home)
+        }
+        add(NavScreen.Upload)
+        add(NavScreen.Favorites)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
