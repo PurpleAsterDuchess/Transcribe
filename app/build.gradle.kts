@@ -47,6 +47,10 @@ android {
 
 dependencies {
     implementation("androidx.room:room-ktx:2.8.4")
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.androidx.compose.ui.test)
+    implementation(libs.androidx.ui.test.junit4)
+    implementation(libs.transport.runtime)
     ksp("androidx.room:room-compiler:2.8.4")
 
     implementation("androidx.navigation:navigation-compose:2.9.7")
@@ -64,6 +68,7 @@ dependencies {
     testImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
     kspTest("com.google.dagger:hilt-compiler:$hiltVersion")
 
+    androidTestImplementation("com.google.dagger:hilt-android-testing:$hiltVersion")
     androidTestImplementation("org.mockito:mockito-android:5.11.0")
     androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
 
@@ -104,9 +109,9 @@ dependencies {
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
 }
