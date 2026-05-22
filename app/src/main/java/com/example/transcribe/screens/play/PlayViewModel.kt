@@ -38,7 +38,6 @@ class PlayViewModel @Inject constructor(
 
     var currentTranscription by mutableStateOf<Transcription?>(null)
         private set
-
     fun getTranscriptionById(songId: String?) {
         if (songId.isNullOrBlank()) return
 

@@ -1,7 +1,6 @@
 package com.example.transcribe.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,30 +28,26 @@ fun NavigationGraph(
     navController: NavHostController,
     modifier: Modifier
 ) {
-    var userRole by remember { mutableStateOf(UserRole.UNKNOWN)}
+    var userRole by remember { mutableStateOf(UserRole.UNKNOWN) }
     val context = LocalContext.current.applicationContext
-    var selectedTranscriptionIndex by remember{ mutableIntStateOf(-1) }
-    var selectedTranscription: Transcription? = null
+    var selectedTranscription by remember { mutableStateOf<Transcription?>(null) }
 
     NavHost(
         navController = navController,
-        startDestination = NavScreen.Login.route
+        startDestination = NavScreen.Login.route,
+        modifier = modifier
     ) {
         composable(NavScreen.Login.route) {
             LoginScreen(
                 navigateToSignUpScreen = {
                     navController.navigate(NavScreen.SignUp.route)
                 },
-                navigateToHomeScreen = {
-                    if (userRole == UserRole.ADMIN) {
-                        navController.navigate(NavScreen.Admin_Home.route)
-                    } else if (userRole == UserRole.USER) {
-                        navController.navigate(NavScreen.Home.route)
+                navigateToHomeScreen = { role ->
+                    userRole = role
+                    val destination = if (role == UserRole.ADMIN) NavScreen.Admin_Home.route else NavScreen.Home.route
+                    navController.navigate(destination) {
+                        popUpTo(NavScreen.Login.route) { inclusive = true }
                     }
-
-                },
-                updateRoleForUser = { newUserRole ->
-                    userRole = newUserRole
                 },
                 modifier = modifier
             )
@@ -69,12 +64,9 @@ fun NavigationGraph(
 
         composable(NavScreen.Home.route) {
             HomeScreen(
-                onIndexChange = {
-                    selectedTranscription = it
-                },
-                onClickToEdit =  {
-                    if(selectedTranscription != null)
-                        navController.navigate("edit")
+                onIndexChange = { selectedTranscription = it },
+                onClickToEdit = {
+                    if (selectedTranscription != null) navController.navigate("edit")
                 },
                 navController = navController,
                 context = context,
@@ -85,12 +77,9 @@ fun NavigationGraph(
         composable(NavScreen.Admin_Home.route) {
             AdminHomeScreen(
                 userRole = userRole,
-                onIndexChange = {
-                    selectedTranscription = it
-                },
-                onClickToEdit =  {
-                    if(selectedTranscription != null)
-                        navController.navigate("edit")
+                onIndexChange = { selectedTranscription = it },
+                onClickToEdit = {
+                    if (selectedTranscription != null) navController.navigate("edit")
                 },
                 navController = navController,
                 context = context,
@@ -103,7 +92,11 @@ fun NavigationGraph(
                 text = stringResource(R.string.upload_button),
                 context = context,
                 modifier = modifier,
-                onClickToHome = { navController.navigate("home") }
+                onClickToHome = {
+                    navController.navigate(NavScreen.Home.route) {
+                        popUpTo(NavScreen.Upload.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -116,9 +109,7 @@ fun NavigationGraph(
             )
         }
 
-        composable(
-            route = "${NavScreen.Play.route}/{songId}"
-        ) { backStackEntry ->
+        composable(route = "${NavScreen.Play.route}/{songId}") { backStackEntry ->
             val songId = backStackEntry.arguments?.getString("songId")
             PlayScreen(
                 navController = navController,

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -14,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.transcribe.R
 import com.example.transcribe.UserRole
@@ -27,13 +30,12 @@ import com.example.transcribe.screens.signup.SmallSpacer
 fun LoginScreen(
     modifier: Modifier = Modifier,
     vm: LoginViewModel = hiltViewModel(),
-    updateRoleForUser: (UserRole) -> Unit,
     navigateToSignUpScreen: () -> Unit,
-    navigateToHomeScreen: () -> Unit,
+    navigateToHomeScreen: (UserRole) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(vm.uiEvents) {
         vm.uiEvents.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
@@ -41,19 +43,14 @@ fun LoginScreen(
 
     val response = vm.signInResponse
 
-    if (response is Response.Success) {
-        LaunchedEffect(response) {
-            if (vm.isEmailVerified) {
-                updateRoleForUser(vm.userRole)
-                navigateToHomeScreen()
-            } else {
-                snackbarHostState.showSnackbar("Email not verified")
-            }
+    LaunchedEffect(response) {
+        if (response is Response.Success) {
+            navigateToHomeScreen(vm.userRole)
         }
     }
 
-    Scaffold(snackbarHost = {
-        SnackbarHost(hostState = snackbarHostState) },
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = { padding ->
             val keyboard = LocalSoftwareKeyboardController.current
 
@@ -64,6 +61,12 @@ fun LoginScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    text = stringResource(R.string.login),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 32.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
                 CustomTextField(
                     hintText = stringResource(R.string.email),
                     text = vm.loginUiState.email,

@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.transcribe.UserRole
-import com.example.transcribe.data.AuthRepository
+import com.example.transcribe.data.AuthRepo
 import com.example.transcribe.data.Response
 import com.example.transcribe.data.UserRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +20,7 @@ import kotlinx.coroutines.withTimeout
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val auth: AuthRepository,
+    private val auth: AuthRepo,
     private val userRepo: UserRepo
 ) : ViewModel() {
     var loginUiState by mutableStateOf(LoginUiState())
@@ -67,14 +67,20 @@ class LoginViewModel @Inject constructor(
     fun signInWithEmailAndPassword() {
         viewModelScope.launch {
             signInResponse = Response.Loading
-            val response  = auth.signInWithEmailAndPassword(loginUiState.email, loginUiState.password)
+            val response = auth.signInWithEmailAndPassword(loginUiState.email, loginUiState.password)
 
             if (response is Response.Success) {
                 try {
                     val userId = auth.getUserId() ?: throw Exception("User ID not found after sign-in")
                     userRole = userRepo.getUserRole(userId)
-                    signInResponse = response
-                } catch (e: Exception){
+                    
+                    if (isEmailVerified) {
+                        signInResponse = Response.Success
+                    } else {
+                        signInResponse = Response.NotConfirmed
+                        _uiEvents.send("Email not verified")
+                    }
+                } catch (e: Exception) {
                     Log.e("LoginViewModel", "Error fetching user role", e)
                     signInResponse = Response.Failure(e)
                 }
