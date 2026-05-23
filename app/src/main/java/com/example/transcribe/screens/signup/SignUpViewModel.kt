@@ -7,21 +7,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.transcribe.data.AuthRepository
 import com.example.transcribe.data.Response
+import com.example.transcribe.data.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import com.example.transcribe.data.UserRepo
+
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor (private val auth: AuthRepository
+class SignUpViewModel @Inject constructor (
+    private val auth: AuthRepository,
+    private val userRepo: UserRepo
 ) : ViewModel() {
-    var loginUiState by mutableStateOf(LoginUiState())
+    var signUpUiState by mutableStateOf(SignUpUiState())
         private set
 
-    fun onChange(email: String = loginUiState.email,
-                 password: String = loginUiState.password) {
-        loginUiState = loginUiState.copy(email = email,
+    fun onChange(firstName: String = signUpUiState.firstName,
+                 surname: String = signUpUiState.surname,
+                 email: String = signUpUiState.email,
+                 password: String = signUpUiState.password) {
+
+        signUpUiState = signUpUiState.copy(firstName = firstName,
+            surname = surname,
+            email = email,
             password = password)
     }
 
@@ -31,20 +41,18 @@ class SignUpViewModel @Inject constructor (private val auth: AuthRepository
     var signUpResponse by mutableStateOf<Response>(Response.Startup)
         private set
 
-    var sendEmailVerificationResponse by mutableStateOf<Response>(Response.Startup)
-        private set
-
     fun signUpWithEmailAndPassword() {
         viewModelScope.launch {
-            if (loginUiState.isValid()) {
+            if (signUpUiState.isValid()) {
                 signUpResponse = Response.Loading
-                signUpResponse = auth.signUpWithEmailAndPassword(loginUiState.email, loginUiState.password)
+                val result = auth.signUpWithEmailAndPassword(signUpUiState.email, signUpUiState.password)
+                signUpResponse = result
 
-                if (signUpResponse is Response.Failure) {
-                    _uiEvents.send("Unable to create")
-                }
-                if (signUpResponse is Response.NotConfirmed){
-                    sendEmailVerification()
+                if (result is Response.Failure) {
+                    _uiEvents.send("Unable to create sign up: ${result.e.message}")
+                } else if (result is Response.NotConfirmed) {
+                    _uiEvents.send("Confirm details via email")
+                    saveUserDetailsToFirestore()
                 }
             }
         }
@@ -52,15 +60,28 @@ class SignUpViewModel @Inject constructor (private val auth: AuthRepository
 
     fun sendEmailVerification() {
         viewModelScope.launch {
-            sendEmailVerificationResponse = Response.Loading
-            sendEmailVerificationResponse = auth.sendEmailVerification()
+            val response = auth.sendEmailVerification()
+            if (response is Response.Failure) {
+                _uiEvents.send("Unable to send verification email: ${response.e.message}")
+            } else if (response is Response.Success) {
+                _uiEvents.send("Confirm details via email.")
+            }
+        }
+    }
 
-            if (sendEmailVerificationResponse is Response.Failure) {
-                _uiEvents.send("Unable to send verification email")
-            }
-            else{
-            _uiEvents.send("Confirm details via email")
-            }
+    private suspend fun saveUserDetailsToFirestore() {
+        val uid = auth.getUserId() ?: return
+
+        val newUserDetails = User(
+            uid = uid,
+            firstName = signUpUiState.firstName,
+            surname = signUpUiState.surname,
+            email = signUpUiState.email,
+        )
+
+        val response = userRepo.createUserProfile(newUserDetails)
+        if (response is Response.Failure) {
+            _uiEvents.send("Profile sync failed: ${response.e.message}")
         }
     }
 }

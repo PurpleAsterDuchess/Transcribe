@@ -1,6 +1,7 @@
 package com.example.transcribe.screens.play
 
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,11 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.transcribe.components.CustomButton
 import com.example.transcribe.components.CustomTextField
@@ -44,8 +44,11 @@ fun PlayScreen(
     context: Context,
     modifier: Modifier = Modifier
 ) {
-    val transcription by vm.getTranscriptionById(songId)
-        .collectAsStateWithLifecycle(initialValue = null)
+    LaunchedEffect(songId) {
+        vm.getTranscriptionById(songId)
+    }
+
+    val transcription = vm.currentTranscription
 
     var isEditing by remember { mutableStateOf(false) }
     var editedTitle by remember { mutableStateOf("") }
@@ -63,6 +66,7 @@ fun PlayScreen(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -107,7 +111,7 @@ fun PlayScreen(
                 )
             }
         } else {
-            Box(modifier = modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -119,50 +123,92 @@ fun PlayScreen(
                         modifier = Modifier.padding(top = 20.dp)
                     )
 
-
                     Text(
                         text = "Author: ${transcription?.author ?: "Unknown"}",
                         fontSize = 16.sp,
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
-                    }
 
-//            CustomButton(
-//                onClick = {
-//                    if (vm.isPlayingSong) {
-//                        vm.stopAudio()
-//                    } else {
-//                        vm.playAudio(context, transcription?.fileUri)
-//                    }
-//                },
-//                text = if (vm.isPlayingSong) "Stop Audio" else "Play Audio",
-//                modifier = Modifier.fillMaxWidth(0.7f),
-//                containerColor = if (vm.isPlayingSong) Color.Red else Color.Black
-//            )
-            Row (modifier = Modifier.align(Alignment.TopEnd)){
-                IconButton(onClick = { isEditing = true}) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Edit,
-                        contentDescription = "edit"
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    CustomButton(
+                        onClick = {
+                            if (vm.isPlayingSong) {
+                                vm.stopAudio()
+                            } else {
+                                vm.playAudio(context, transcription?.midiUri)
+                            }
+                        },
+                        text = if (vm.isPlayingSong) "Stop MIDI" else "Play MIDI",
+                        enabled = !transcription?.midiUri.isNullOrEmpty(),
+                        modifier = Modifier.fillMaxWidth(0.7f),
+                        containerColor = if (vm.isPlayingSong) Color.Red else Color.Black
                     )
-                }
-                IconButton(
-                    onClick = {
-                        transcription?.let {
-                            vm.deleteTranscription(it) {
-                                navController.popBackStack()
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    transcription?.notes?.let { notes ->
+                        if (notes.isNotEmpty()) {
+                            Text(
+                                text = "Notes",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                            notes.forEach { note ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.8f)
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = pitchToNoteName(note.pitch),
+                                        fontSize = 16.sp
+                                    )
+                                    Text(
+                                        text = String.format("%.2fs", note.end - note.start),
+                                        fontSize = 16.sp,
+                                        color = Color.Gray
+                                    )
+                                }
                             }
                         }
-                    },
-                ) {
-                    Icon(
-                        imageVector = androidx.compose.material.icons.Icons.Default.Delete,
-                        contentDescription = "edit"
-                    )
+                    }
                 }
-            }
+
+                Row(modifier = Modifier.align(Alignment.TopEnd)) {
+                    IconButton(onClick = { isEditing = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "edit"
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            transcription?.let {
+                                vm.deleteTranscription(it.id) {
+                                    navController.popBackStack()
+                                }
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "delete"
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+private fun pitchToNoteName(pitch: Int): String {
+    val notes = listOf("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
+    val octave = (pitch / 12) - 1
+    val noteIndex = pitch % 12
+    return "${notes[noteIndex]}$octave"
 }

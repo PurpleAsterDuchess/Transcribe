@@ -3,11 +3,11 @@ package com.example.transcribe.screens.signup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -25,7 +25,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun SignUpScreen(modifier: Modifier = Modifier,
@@ -45,7 +48,6 @@ fun SignUpScreen(modifier: Modifier = Modifier,
 
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState) },
-
         content = { padding ->
             Column(
                 modifier = Modifier
@@ -54,24 +56,49 @@ fun SignUpScreen(modifier: Modifier = Modifier,
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Enter details to sign up")
+                Text(
+                    text = stringResource(R.string.sign_up),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 32.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
 
                 CustomTextField(
+                    hintText = stringResource(R.string.first_name_hint),
+                    text = vm.signUpUiState.firstName,
+                    onValueChange = { vm.onChange(firstName = it) },
+                    errorMessage = stringResource(R.string.first_name_error_message),
+                    errorPresent = vm.signUpUiState.firstNameIsInvalid()
+                )
+
+                SmallSpacer()
+                CustomTextField(
+                    hintText = stringResource(R.string.surname_hint),
+                    text = vm.signUpUiState.surname,
+                    isPasswordField = false,
+                    onValueChange = { vm.onChange(surname = it) },
+                    errorMessage = stringResource(R.string.surname_error_message),
+                    errorPresent = vm.signUpUiState.surnameIsInvalid()
+                )
+
+                SmallSpacer()
+                CustomTextField(
                     hintText = stringResource(R.string.email),
-                    text = vm.loginUiState.email,
-                    onValueChange = { vm.onChange( email = it) },
+                    text = vm.signUpUiState.email,
+                    isPasswordField = false,
+                    onValueChange = { vm.onChange(email = it) },
                     errorMessage = stringResource(R.string.email_error_message),
-                    errorPresent = vm.loginUiState.emailIsInvalid()
+                    errorPresent = vm.signUpUiState.emailIsInvalid()
                 )
 
                 SmallSpacer()
                 CustomTextField(
                     hintText = stringResource(R.string.password),
-                    text = vm.loginUiState.password,
+                    text = vm.signUpUiState.password,
                     isPasswordField = true,
                     onValueChange = { vm.onChange(password = it) },
                     errorMessage = stringResource(R.string.password_error_message),
-                    errorPresent = vm.loginUiState.passwordIsInvalid()
+                    errorPresent = vm.signUpUiState.passwordIsInvalid()
                 )
 
                 SmallSpacer()
@@ -81,7 +108,7 @@ fun SignUpScreen(modifier: Modifier = Modifier,
                         keyboard?.hide()
                         vm.signUpWithEmailAndPassword()
                     },
-                    enabled = vm.loginUiState.isValid()
+                    enabled = vm.signUpUiState.isValid() && response !is Response.Loading
                 )
                 Row {
                     CustomButton(stringResource(R.string.back_button),

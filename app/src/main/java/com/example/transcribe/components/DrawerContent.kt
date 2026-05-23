@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
@@ -16,19 +15,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.transcribe.AppDestinations
+import com.example.transcribe.UserRole
+import com.example.transcribe.data.Transcription
 import com.example.transcribe.navigation.NavScreen
 
-// This should be popluated with links to the play screens, each of which is a different score
 @Composable
 fun DrawerContent(
     menuTitle: String,
+    recentTranscriptions: List<Transcription>,
     selectedRoute: String?,
-    onItemClick: (NavScreen) -> Unit
+    userRole: UserRole,
+    onItemClick: (NavScreen) -> Unit,
+    onTranscriptionClick: (Transcription) -> Unit
 ) {
-    val tempDrawerItems = listOf(
-        NavScreen.Play,
-    )
+    val menuItems = buildList {
+        add(NavScreen.Home)
+        if (userRole == UserRole.ADMIN) {
+            add(NavScreen.Admin_Home)
+        }
+        add(NavScreen.Upload)
+        add(NavScreen.Favorites)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -44,10 +51,24 @@ fun DrawerContent(
                     style = MaterialTheme.typography.headlineMedium
                 )
             }
-            items(
-                items = tempDrawerItems,
-                key = { it.route }
-            ) { item ->
+
+            if (recentTranscriptions.isNotEmpty()) {
+                items(recentTranscriptions) { transcription ->
+                    NavigationDrawerItem(
+                        label = { Text(transcription.title) },
+                        selected = selectedRoute?.contains(transcription.id) == true,
+                        onClick = { onTranscriptionClick(transcription) },
+                        icon = { Icon(NavScreen.Play.icon.icon, contentDescription = null) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+        
+        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+            menuItems.forEach { item ->
                 NavigationDrawerItem(
                     label = {
                         Text(text = item.route.replaceFirstChar { it.uppercase() })
@@ -79,6 +100,7 @@ fun DrawerContent(
                 )
             },
             modifier = Modifier
+                .padding(horizontal = 12.dp)
                 .padding(NavigationDrawerItemDefaults.ItemPadding)
                 .padding(bottom = 12.dp)
         )

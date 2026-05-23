@@ -3,6 +3,7 @@ package com.example.transcribe.screens.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.transcribe.data.DatabaseState
 import com.example.transcribe.data.LocalTranscriptionRepository
 import com.example.transcribe.data.Transcription
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,22 +13,29 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repo: LocalTranscriptionRepository
 ) : ViewModel() {
-    val items: StateFlow<List<Transcription>> = repo.findAll()
+    val transcriptions: StateFlow<DatabaseState<Transcription>> = repo.getAll()
+        .map<List<Transcription>, DatabaseState<Transcription>> { list ->
+            DatabaseState.Success(list)
+        }
+        .catch { e ->
+            emit(DatabaseState.Failure(e.message ?: "Unknown Error"))
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = DatabaseState.Loading
         )
-
     var selectedTranscription: Transcription?= null
 
     fun deleteTranscription(){
-        val transcriptionToDelete = selectedTranscription ?: return
+        val transcriptionToDelete = selectedTranscription?.id ?: return
         viewModelScope.launch(errorHandler) {
             repo.delete(transcriptionToDelete)
             selectedTranscription = null

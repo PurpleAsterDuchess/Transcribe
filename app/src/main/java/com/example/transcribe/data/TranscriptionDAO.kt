@@ -1,36 +1,82 @@
 package com.example.transcribe.data
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.snapshots
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.tasks.await
 
-@Dao
-interface TranscriptionDAO {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(transcription: Transcription)
+@Singleton
+class TranscriptionDAO @Inject constructor(
+    private val firestore: FirebaseFirestore
+) {
+    private val transcriptionCollection = firestore.collection("transcriptions")
 
-    @Update
-    suspend fun update(transcription: Transcription)
+    suspend fun insert(transcription: Transcription): String {
+        val docRef = transcriptionCollection.add(transcription).await()
+        return docRef.id
+    }
 
-    @Delete
-    suspend fun delete(transcription: Transcription)
+    suspend fun update(transcription: Transcription) {
+        if (transcription.id.isNotEmpty()) {
+            transcriptionCollection.document(transcription.id).set(transcription).await()
+        }
+    }
 
-    @Query("DELETE FROM Transcriptions")
-    suspend fun deleteAll()
+    suspend fun delete(transcriptionId: String) {
+        if (transcriptionId.isNotEmpty()) {
+            transcriptionCollection.document(transcriptionId).delete().await()
+        }
+    }
 
-    @Query("SELECT * FROM Transcriptions ORDER BY author, title ASC")
-    fun findAll(): Flow<List<Transcription>>
+    fun getAll(): Flow<List<Transcription>> {
+        return transcriptionCollection.orderBy("title")
+            .snapshots()
+            .map { snapshot ->
+                snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Transcription::class.java)?.apply { id = doc.id }
+                }
+            }.catch { e ->
+                emit(emptyList())
+            }
+    }
 
-    @Query("SELECT * FROM Transcriptions WHERE id =:id")
-    fun findById(id: Int): Flow<Transcription?>
+    fun getRecent(userId: String, limit: Long): Flow<List<Transcription>> {
+        return transcriptionCollection
+            .whereEqualTo("userId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(limit)
+            .snapshots()
+            .map { snapshot ->
+                snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Transcription::class.java)?.apply { id = doc.id }
+                }
+            }.catch { e ->
+                emit(emptyList())
+            }
+    }
 
-    @Query("SELECT * FROM Transcriptions WHERE author =:author ORDER BY author, title ASC")
-    fun findByAuthor(author: String): Flow<Transcription?>
+    suspend fun getById(id: String): Transcription? {
+        if (id.isEmpty()) return null
+        val snapshot = transcriptionCollection.document(id).get().await()
+        return snapshot.toObject(Transcription::class.java)?.apply { this.id = snapshot.id }
+    }
 
-    @Query("SELECT * FROM Transcriptions WHERE title =:title ORDER BY title, author ASC")
-    fun findByTitle(title: String): Flow<Transcription?>
+    suspend fun getByTitle(title: String): Transcription? {
+        val snapshot = transcriptionCollection.whereEqualTo("title", title).get().await()
+        return snapshot.documents.firstOrNull()?.let { doc ->
+            doc.toObject(Transcription::class.java)?.apply { id = doc.id }
+        }
+    }
+
+    suspend fun getByAuthor(author: String): Transcription? {
+        val snapshot = transcriptionCollection.whereEqualTo("author", author).get().await()
+        return snapshot.documents.firstOrNull()?.let { doc ->
+            doc.toObject(Transcription::class.java)?.apply { id = doc.id }
+        }
+    }
 }

@@ -4,22 +4,44 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Transcription::class],
-    version = 1,
-    exportSchema = false)
+@Database(
+    entities = [Transcription::class],
+    version = 2,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
 abstract class TranscriptionDB : RoomDatabase() {
-    abstract fun transcriptionDAO() : TranscriptionDAO
 
     companion object {
         @Volatile
         private var INSTANCE: TranscriptionDB? = null
 
-        fun getDatabase(context: Context) : TranscriptionDB {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                try {
+                    db.execSQL("ALTER TABLE Transcriptions ADD COLUMN sheetMusicUri TEXT")
+                    db.execSQL("ALTER TABLE Transcriptions ADD COLUMN midiUri TEXT")
+                    db.execSQL("ALTER TABLE Transcriptions ADD COLUMN voiceUri TEXT")
+                    db.execSQL("ALTER TABLE Transcriptions ADD COLUMN scoreImageUrl TEXT")
+                    db.execSQL("ALTER TABLE Transcriptions ADD COLUMN notes TEXT")
+                } catch (e: Exception) {
+                }
+            }
+        }
+
+        fun getDatabase(context: Context): TranscriptionDB {
             return INSTANCE ?: synchronized(this) {
-                Room.databaseBuilder(context,
+                Room.databaseBuilder(
+                    context.applicationContext,
                     TranscriptionDB::class.java,
-                    "contact_database")
+                    "transcription_database"
+                )
+                    .addMigrations(MIGRATION_1_2)
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }
             }

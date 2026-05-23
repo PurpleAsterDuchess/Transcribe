@@ -29,8 +29,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.transcribe.components.DrawerContent
 import com.example.transcribe.components.TopBar
 import kotlinx.coroutines.launch
-import com.example.transcribe.data.Transcription
-import com.example.transcribe.data.TranscriptionRepository
 import com.example.transcribe.screens.play.PlayViewModel
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -51,18 +49,20 @@ fun MainScreen(modifier: Modifier = Modifier,
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val recentTranscriptions by vm.recentTranscriptions.collectAsStateWithLifecycle()
+    val userRole by vm.userRole.collectAsStateWithLifecycle()
+
     var topBarTitle by remember { mutableStateOf("") }
     val defaultTitle = stringResource(R.string.app_name)
 
     val songId = navBackStackEntry?.arguments?.getString("songId")
-    val currentTranscription by remember(songId) {
-        val id = songId?.toIntOrNull()
-        if (id != null) {
-            playVm.getTranscriptionById(id.toString())
-        } else {
-            kotlinx.coroutines.flow.flowOf(null)
+    LaunchedEffect(songId) {
+        if (songId != null) {
+            playVm.getTranscriptionById(songId)
         }
-    }.collectAsStateWithLifecycle(initialValue = null)
+    }
+
+    val currentTranscription = playVm.currentTranscription
 
     val authRoutes = listOf(NavScreen.Login.route, NavScreen.SignUp.route)
     val showNav = currentRoute !in authRoutes
@@ -89,7 +89,9 @@ fun MainScreen(modifier: Modifier = Modifier,
                 ModalDrawerSheet {
                     DrawerContent(
                         menuTitle = stringResource(R.string.menu_name),
+                        recentTranscriptions = recentTranscriptions,
                         selectedRoute = currentlySelectedMenuItem,
+                        userRole = userRole,
                         onItemClick = { menuItem ->
                             if (currentlySelectedMenuItem != menuItem.route) {
                                 coroutineScope.launch {
@@ -104,6 +106,12 @@ fun MainScreen(modifier: Modifier = Modifier,
                                 }
                             } else {
                                 coroutineScope.launch { drawerState.close() }
+                            }
+                        },
+                        onTranscriptionClick = { transcription ->
+                            coroutineScope.launch {
+                                drawerState.close()
+                                navController.navigate("${NavScreen.Play.route}/${transcription.id}")
                             }
                         }
                     )

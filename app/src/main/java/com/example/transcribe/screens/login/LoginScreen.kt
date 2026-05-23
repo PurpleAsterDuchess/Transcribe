@@ -1,8 +1,10 @@
-package com.example.transcribe.screens.signup
+package com.example.transcribe.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -12,45 +14,43 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.transcribe.R
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.transcribe.components.CustomButton
-import com.example.transcribe.components.CustomTextField
-import com.example.transcribe.components.ProgressBar
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import com.example.transcribe.R
+import com.example.transcribe.UserRole
 import com.example.transcribe.data.Response
+import com.example.transcribe.components.CustomButton
+import com.example.transcribe.components.ProgressBar
+import com.example.transcribe.components.CustomTextField
+import com.example.transcribe.screens.signup.SmallSpacer
 
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier,
-                vm: LoginViewModel = hiltViewModel(),
-                navigateToSignUpScreen: () -> Unit,
-                navigateToHomeScreen: () -> Unit,
+fun LoginScreen(
+    modifier: Modifier = Modifier,
+    vm: LoginViewModel = hiltViewModel(),
+    navigateToSignUpScreen: () -> Unit,
+    navigateToHomeScreen: (UserRole) -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(vm.uiEvents) {
         vm.uiEvents.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
     }
 
     val response = vm.signInResponse
-    if (response is Response.Success) {
-        LaunchedEffect(response) {
-            if (vm.isEmailVerified) {
-                navigateToHomeScreen()
-            } else {
-                snackbarHostState.showSnackbar("Email not verified")
-            }
+
+    LaunchedEffect(response) {
+        if (response is Response.Success) {
+            navigateToHomeScreen(vm.userRole)
         }
     }
 
-
-    Scaffold(snackbarHost = {
-        SnackbarHost(hostState = snackbarHostState) },
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = { padding ->
             val keyboard = LocalSoftwareKeyboardController.current
 
@@ -61,13 +61,18 @@ fun LoginScreen(modifier: Modifier = Modifier,
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Text(
+                    text = stringResource(R.string.login),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 32.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
                 CustomTextField(
                     hintText = stringResource(R.string.email),
                     text = vm.loginUiState.email,
-                    isPasswordField = false,
                     onValueChange = { vm.onChange(email = it) },
                     errorMessage = stringResource(R.string.email_error_message),
-                    errorPresent = vm.loginUiState.emailIsInvalid()
+                    errorPresent = vm.loginUiState.email.isNotEmpty() && vm.loginUiState.emailIsInvalid()
                 )
                 SmallSpacer()
                 CustomTextField(
@@ -76,9 +81,8 @@ fun LoginScreen(modifier: Modifier = Modifier,
                     isPasswordField = true,
                     onValueChange = { vm.onChange(password = it) },
                     errorMessage = stringResource(R.string.password_error_message),
-                    errorPresent = vm.loginUiState.passwordIsInvalid()
+                    errorPresent = vm.loginUiState.password.isNotEmpty() && vm.loginUiState.passwordIsInvalid()
                 )
-
 
                 SmallSpacer()
                 CustomButton(
@@ -87,24 +91,25 @@ fun LoginScreen(modifier: Modifier = Modifier,
                         keyboard?.hide()
                         vm.signInWithEmailAndPassword()
                     },
-                    enabled = vm.loginUiState.isValid()
+                    enabled = vm.loginUiState.isValid() && response !is Response.Loading
                 )
 
                 SmallSpacer()
                 CustomButton(
                     stringResource(R.string.forgot_password),
                     onClick = { vm.forgotPassword() },
-                    enabled = !vm.loginUiState.emailIsInvalid()
+                    enabled = vm.loginUiState.email.isNotEmpty() && !vm.loginUiState.emailIsInvalid() && response !is Response.Loading
                 )
 
                 SmallSpacer()
                 CustomButton(stringResource(R.string.sign_up_button),
-                    onClick = { navigateToSignUpScreen() }
+                    onClick = { navigateToSignUpScreen() },
+                    enabled = response !is Response.Loading
                 )
             }
         }
     )
-    //Layout on top of scaffold
+
     if (response is Response.Loading) {
         ProgressBar()
     }
