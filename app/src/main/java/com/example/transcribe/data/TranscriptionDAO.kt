@@ -16,8 +16,9 @@ class TranscriptionDAO @Inject constructor(
 ) {
     private val transcriptionCollection = firestore.collection("transcriptions")
 
-    suspend fun insert(transcription: Transcription) {
-        transcriptionCollection.add(transcription).await()
+    suspend fun insert(transcription: Transcription): String {
+        val docRef = transcriptionCollection.add(transcription).await()
+        return docRef.id
     }
 
     suspend fun update(transcription: Transcription) {
@@ -60,6 +61,7 @@ class TranscriptionDAO @Inject constructor(
     }
 
     suspend fun getById(id: String): Transcription? {
+        if (id.isEmpty()) return null
         val snapshot = transcriptionCollection.document(id).get().await()
         return snapshot.toObject(Transcription::class.java)?.apply { this.id = snapshot.id }
     }

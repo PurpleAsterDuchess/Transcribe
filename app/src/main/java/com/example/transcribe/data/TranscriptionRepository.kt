@@ -8,6 +8,7 @@ interface TranscriptionRepository : Repository<Transcription> {
     suspend fun getByTitle(title: String): Transcription?
     suspend fun getByAuthor(author: String): Transcription?
     fun getRecent(userId: String, limit: Long): Flow<List<Transcription>>
+    suspend fun insertTranscription(transcription: Transcription): String
 }
 
 class LocalTranscriptionRepository @Inject constructor (
@@ -24,6 +25,11 @@ class LocalTranscriptionRepository @Inject constructor (
             transcriptionDAO.insert(transcription)
         }
     }
+
+    override suspend fun insertTranscription(transcription: Transcription): String {
+        return transcriptionDAO.insert(transcription)
+    }
+
     override fun getAll(): Flow<List<Transcription>> = transcriptionDAO.getAll()
     override suspend fun getById(id: String): Transcription? = transcriptionDAO.getById(id)
     override suspend fun getByTitle(title: String): Transcription? =

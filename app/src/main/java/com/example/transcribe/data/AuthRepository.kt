@@ -27,6 +27,7 @@ class AuthRepository @Inject constructor(private val auth: FirebaseAuth) : AuthR
             auth.signInWithEmailAndPassword(email.trim(), password.trim()).await()
             Response.Success
         } catch (e: Exception) {
+            Log.e("AuthRepository", "SignIn Failed: ${e.message}", e)
             Response.Failure(e)
         }
     }
